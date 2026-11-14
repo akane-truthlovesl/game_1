@@ -1,0 +1,11 @@
+{
+  "name": "Snug",
+  "short_name": "Snug",
+  "description": "Plug the room awake.",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#15101a",
+  "theme_color": "#15101a",
+  "icons": []
+}

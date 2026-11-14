@@ -1,0 +1,7 @@
+{
+  "name": "snug-playtest",
+  "private": true,
+  "type": "module",
+  "description": "Headless playtests: real pointer/touch drags, feel probes, audio render. Not needed to play the game.",
+  "devDependencies": { "playwright-core": "1.49.1" }
+}

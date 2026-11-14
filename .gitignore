@@ -1,0 +1,14 @@
+# Dependencies (rebuild with `npm install` in tools/playtest)
+node_modules/
+
+# Editor swap/backup files
+*.swp
+*.swo
+*~
+
+# Generated playtest screenshots (written by tools/playtest/*.mjs)
+tools/playtest/out/
+
+# OS cruft
+.DS_Store
+Thumbs.db
