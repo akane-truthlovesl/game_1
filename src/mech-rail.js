@@ -42,6 +42,22 @@
     }
     return null;
   };
+  // the ridged end caps are the strip's handles: a touch there wins over a seated plug that is merely near
+  Room.prototype.gripAt = function (x, y) {
+    if (!this.railRT) return null;
+    for (const id in this.railRT) {
+      const strip = this.railRT[id].strip;
+      const ca = Math.cos(strip.angle),
+        sa = Math.sin(strip.angle);
+      const dx = x - strip.x,
+        dy = y - strip.y;
+      const lx = dx * ca + dy * sa,
+        ly = -dx * sa + dy * ca;
+      const half = (strip.n * strip.pitch) / 2;
+      if (Math.abs(ly) <= 27 && Math.abs(lx) >= half + 1 && Math.abs(lx) <= half + 17) return strip;
+    }
+    return null;
+  };
   Room.prototype.grabStrip = function (strip, ptrId, x, y) {
     const r = this.railRT[strip.id];
     if (!r || r.grab) return false;

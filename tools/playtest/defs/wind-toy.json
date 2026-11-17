@@ -1,0 +1,19 @@
+{
+ "id": 99,
+ "act": 5,
+ "name": "Wind (toy, no goal)",
+ "cls": "puzzle",
+ "dawn": 0.5,
+ "world": "desk",
+ "par": 1,
+ "tidy": false,
+ "waive": ["luck", "reach"],
+ "wind": { "x0": 100, "x1": 330, "y0": 380, "y1": 470, "ax": 1200, "ay": 0 },
+ "strips": [
+  { "id": "S", "x": 300, "y": 200, "slots": 1, "pitch": 40, "angle": 0, "sockets": [ { "key": "coral" } ] }
+ ],
+ "devices": [
+  { "id": "pip", "label": "Pip", "type": "phone", "x": 60, "y": 540, "color": "coral", "cable": { "len": 420, "curl": 1 }, "plug": { "key": "coral" }, "rest": { "x": 150, "y": 420 } }
+ ],
+ "decor": []
+}

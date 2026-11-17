@@ -502,6 +502,41 @@
   Art.DECOR2.screwjar = { draw: screwJar, shadow: (ctx, d) => Art.shadow(ctx, d.x, d.y, 46, 46, 23, 0, 0.3, 0.5) };
 
   Art.SECRETS2 = Art.SECRETS2 || {};
+  // a gold screw (the jar's secret)
+  Art.SECRETS2.goldscrew = function (ctx) {
+    ctx.rotate(0.6);
+    ctx.beginPath();
+    rrect(ctx, -9, -2.6, 16, 5.2, 2);
+    ctx.fillStyle = lin(ctx, 0, -3, 0, 3, [0, '#ffe58a', 1, '#c9922e']);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-9, 0, 4.4, 0, TAU);
+    ctx.fillStyle = lin(ctx, -12, -4, -6, 4, [0, '#fff0b0', 1, '#c9922e']);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(100,60,0,0.7)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-12, -1);
+    ctx.lineTo(-6, 1);
+    ctx.stroke();
+  };
+  // the bulb somebody left on
+  Art.SECRETS2.goldbulb = function (ctx) {
+    ctx.beginPath();
+    ctx.arc(0, -2, 7, 0, TAU);
+    ctx.fillStyle = lin(ctx, -7, -9, 7, 5, [0, '#fff6c8', 1, '#ffc24a']);
+    ctx.fill();
+    ctx.beginPath();
+    rrect(ctx, -3.6, 4, 7.2, 5, 1.6);
+    ctx.fillStyle = '#c79a45';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-2.4, 0);
+    ctx.quadraticCurveTo(0, -4.4, 2.4, 0);
+    ctx.strokeStyle = 'rgba(120,70,0,0.7)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  };
   // a carpenter's pencil (flat, red)
   Art.SECRETS2.pencil = function (ctx) {
     ctx.rotate(-0.5);
@@ -627,36 +662,44 @@
     const col = Art.KEYCOL[g.key] || '#ffe9b8';
     const lit = gr.lit,
       pop = gr.pop;
-    const ang = g.rot;
     ctx.save();
     ctx.translate(g.x, g.y);
-    ctx.rotate(ang);
+    ctx.rotate(g.rot);
     const h = g.gap / 2;
-    // the thread between the posts: a faint dotted guide that becomes a bright filament when a cable runs through
+    // the hoop itself: a coloured ring around the gap (faint when asleep, bright when a cable runs through it)
+    const ringR = h + 5.5 + pop * 3;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, ringR, ringR * 0.62, 0, 0, TAU);
+    ctx.strokeStyle = U.rgba(col, 0.42 + 0.5 * lit);
+    ctx.lineWidth = 2.6;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,' + (0.18 + 0.3 * lit) + ')';
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+    // the thread between the posts: a dotted guide that becomes a bright filament when a cable runs through
     ctx.lineCap = 'round';
     ctx.setLineDash(lit > 0.1 ? [] : [2.4, 4.2]);
     ctx.beginPath();
     ctx.moveTo(-h, 0);
     ctx.lineTo(h, 0);
-    ctx.strokeStyle = lit > 0.1 ? U.rgba(col, 0.35 + 0.4 * lit) : 'rgba(255,255,255,' + (0.22 + 0.2 * gr.hint) + ')';
-    ctx.lineWidth = lit > 0.1 ? 1.4 : 1.1;
+    ctx.strokeStyle = lit > 0.1 ? U.rgba(col, 0.4 + 0.45 * lit) : U.rgba(col, 0.5 + 0.3 * gr.hint);
+    ctx.lineWidth = lit > 0.1 ? 1.6 : 1.3;
     ctx.stroke();
     ctx.setLineDash([]);
     // the hint ring: this hoop is still needed
     if (gr.hint > 0.02) {
       ctx.globalCompositeOperation = 'lighter';
-      ctx.strokeStyle = U.rgba(col, 0.55 * gr.hint * (0.5 + 0.5 * Math.sin(t * 9)));
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = U.rgba(col, 0.7 * gr.hint * (0.5 + 0.5 * Math.sin(t * 9)));
+      ctx.lineWidth = 2.4;
       ctx.beginPath();
-      ctx.arc(0, 0, h + 9, 0, TAU);
+      ctx.ellipse(0, 0, ringR + 7, (ringR + 7) * 0.62, 0, 0, TAU);
       ctx.stroke();
       ctx.globalCompositeOperation = 'source-over';
     }
     for (const sx of [-1, 1]) {
       const x = sx * h;
-      // soft shadow
       ctx.beginPath();
-      ctx.arc(x + 1.6, 2.4, 6.4, 0, TAU);
+      ctx.arc(x + 1.6, 2.4, 6.6, 0, TAU);
       ctx.fillStyle = 'rgba(30,16,4,0.3)';
       ctx.fill();
       // brass collar
@@ -667,32 +710,32 @@
       ctx.strokeStyle = 'rgba(60,40,10,0.55)';
       ctx.lineWidth = 0.8;
       ctx.stroke();
-      // the glass bulb: smoky when asleep, glowing when threaded
-      const R = 7.4 * (1 + 0.22 * pop);
+      // the glass bulb: tinted when asleep, glowing when threaded
+      const R = 8.4 * (1 + 0.22 * pop);
       ctx.beginPath();
       ctx.arc(x, 0, R, 0, TAU);
-      ctx.fillStyle = lin(ctx, x - R, -R, x + R, R, [0, U.mix('#d9e4f0', col, 0.35 + 0.65 * lit), 1, U.mix('#6d7a8c', U.shade(col, -0.2), 0.2 + 0.8 * lit)]);
-      ctx.globalAlpha = 0.5 + 0.5 * lit;
+      ctx.fillStyle = lin(ctx, x - R, -R, x + R, R, [0, U.mix(col, '#ffffff', 0.35 + 0.35 * lit), 1, U.mix(U.shade(col, -0.35), col, 0.2 + 0.8 * lit)]);
+      ctx.globalAlpha = 0.72 + 0.28 * lit;
       ctx.fill();
       ctx.globalAlpha = 1;
-      ctx.strokeStyle = 'rgba(255,255,255,' + (0.55 + 0.3 * lit) + ')';
-      ctx.lineWidth = 1.1;
+      ctx.strokeStyle = 'rgba(255,255,255,' + (0.6 + 0.3 * lit) + ')';
+      ctx.lineWidth = 1.2;
       ctx.stroke();
       // the filament, and a highlight
       ctx.beginPath();
-      ctx.moveTo(x - 2.6, 1.2);
-      ctx.quadraticCurveTo(x, -3.4, x + 2.6, 1.2);
-      ctx.strokeStyle = lit > 0.1 ? 'rgba(255,255,255,' + 0.9 * lit + ')' : 'rgba(60,70,90,0.5)';
-      ctx.lineWidth = 1.1;
+      ctx.moveTo(x - 2.8, 1.4);
+      ctx.quadraticCurveTo(x, -3.8, x + 2.8, 1.4);
+      ctx.strokeStyle = lit > 0.1 ? 'rgba(255,255,255,' + 0.95 * lit + ')' : 'rgba(40,40,60,0.55)';
+      ctx.lineWidth = 1.2;
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(x - R * 0.35, -R * 0.4, R * 0.22, 0, TAU);
-      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.arc(x - R * 0.36, -R * 0.42, R * 0.22, 0, TAU);
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
       ctx.fill();
       if (lit > 0.03) {
         ctx.globalCompositeOperation = 'lighter';
-        ctx.fillStyle = rad(ctx, x, 0, 1, 24, [0, U.rgba(col, 0.55 * lit), 1, U.rgba(col, 0)]);
-        ctx.fillRect(x - 24, -24, 48, 48);
+        ctx.fillStyle = rad(ctx, x, 0, 1, 26, [0, U.rgba(col, 0.6 * lit), 1, U.rgba(col, 0)]);
+        ctx.fillRect(x - 26, -26, 52, 52);
         ctx.globalCompositeOperation = 'source-over';
       }
     }
@@ -758,5 +801,230 @@
       }
     },
     shadow() {},
+  };
+
+  /* ---------------------------------------------------------------- Lefty and Righty (the speakers) */
+  function speaker(ctx, dev, rt, t) {
+    const on = rt.power === 'on';
+    const col = Art.KEYCOL[dev.color || 'coral'];
+    const wk = rt.wake >= 0 ? rt.wake : 9;
+    const pump = on ? Math.exp(-wk * 1.1) * Math.sin(wk * 16) : 0; // the cone thumps for a moment after waking
+    if (dev.def.flip) ctx.scale(-1, 1);
+    // cabinet
+    ctx.beginPath();
+    rrect(ctx, -29, -38, 58, 76, 11);
+    ctx.fillStyle = lin(ctx, -29, -38, 29, 38, [0, '#3b4258', 0.5, '#2a3042', 1, '#1b1f2e']);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    // a stripe of the speaker's colour across the top
+    ctx.beginPath();
+    rrect(ctx, -29, -38, 58, 10, 5);
+    ctx.fillStyle = lin(ctx, -29, 0, 29, 0, [0, U.shade(col, 0.15), 1, U.shade(col, -0.2)]);
+    ctx.fill();
+    // face plate and face
+    ctx.beginPath();
+    rrect(ctx, -21, -25, 42, 24, 9);
+    ctx.fillStyle = '#e9e2d0';
+    ctx.fill();
+    ctx.save();
+    ctx.translate(0, -15);
+    if (dev.def.flip) ctx.scale(-1, 1);
+    Art.face(ctx, rt.face, 0.95, { eyeX: 9, eyeW: 4, eyeH: 5.4, mouthY: 8.4, mouthW: 4 }, INK);
+    ctx.restore();
+    // the woofer: rubber surround, cone, dust cap; it pumps after the wake
+    const R = 17.5 * (1 + 0.07 * pump);
+    ctx.beginPath();
+    ctx.arc(0, 15, R + 3.4, 0, TAU);
+    ctx.fillStyle = '#0f1119';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, 15, R, 0, TAU);
+    ctx.fillStyle = rad(ctx, -4, 11, 1, R + 4, [0, '#6b7390', 0.6, '#363c52', 1, '#1a1d2b']);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1;
+    for (const k of [0.72, 0.46]) {
+      ctx.beginPath();
+      ctx.arc(0, 15, R * k, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 15, R * 0.34, 0, TAU);
+    ctx.fillStyle = '#10131b';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-2, 13, R * 0.12, 0, TAU);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fill();
+    if (on) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = 'rgba(255,210,150,' + 0.5 * Math.exp(-wk * 0.9) + ')';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 15, R + 5 + 7 * (1 - Math.exp(-wk * 2)), 0, TAU);
+      ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    // corner screws and a power LED
+    ctx.fillStyle = 'rgba(210,220,240,0.7)';
+    for (const [x, y] of [[-23, -32], [23, -32], [-23, 32], [23, 32]]) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.6, 0, TAU);
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(17, 33, 2, 0, TAU);
+    ctx.fillStyle = on ? '#8dffb0' : rt.power === 'standby' ? 'rgba(255,190,70,' + (0.55 + 0.45 * Math.sin(t * 4)) + ')' : 'rgba(255,90,80,0.55)';
+    ctx.fill();
+  }
+  Art.DEVICES.speaker = speaker;
+
+  /* ---------------------------------------------------------------- the roll of tape and its tongue */
+  Art.tapeRoll = function (ctx, T, t) {
+    if (T.left <= 0) return;
+    const R = 12 + 9 * (T.left / T.total);
+    const jig = T.jig;
+    ctx.save();
+    ctx.translate(T.x, T.y);
+    ctx.rotate(Math.sin(t * 40) * 0.08 * jig);
+    // shadow
+    ctx.beginPath();
+    ctx.arc(2, 3, R + 2, 0, TAU);
+    ctx.fillStyle = 'rgba(8,12,18,0.28)';
+    ctx.fill();
+    // the roll: a silver ring with a cardboard core
+    ctx.beginPath();
+    ctx.arc(0, 0, R, 0, TAU);
+    ctx.fillStyle = lin(ctx, -R, -R, R, R, [0, '#f4f6fa', 0.5, '#bcc4d0', 1, '#7d8798']);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(40,50,66,0.25)';
+    ctx.lineWidth = 0.9;
+    for (let r = R - 2.4; r > 8; r -= 2.6) {
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, TAU);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, 8, 0, TAU);
+    ctx.fillStyle = '#b79a6a';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, 0, 5.5, 0, TAU);
+    ctx.fillStyle = 'rgba(30,22,12,0.7)';
+    ctx.fill();
+    // the hint pulse
+    if (T.hint > 0.05) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = 'rgba(255,240,180,' + 0.7 * T.hint * (0.5 + 0.5 * Math.sin(t * 9)) + ')';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(0, 0, R + 6, 0, TAU);
+      ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    ctx.restore();
+    // the tongue: a ribbon from the roll's edge to its tip (a small flap with a face when idle)
+    const sx = T.x + R * 0.8,
+      sy = T.y + 2;
+    const ex = T.tipX,
+      ey = T.tipY;
+    const mx = (sx + ex) / 2,
+      my = (sy + ey) / 2 + Math.hypot(ex - sx, ey - sy) * 0.12;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(mx, my, ex, ey);
+    ctx.strokeStyle = 'rgba(8,12,18,0.22)';
+    ctx.lineWidth = 10;
+    ctx.save();
+    ctx.translate(2, 3);
+    ctx.stroke();
+    ctx.restore();
+    ctx.strokeStyle = '#aab3c1';
+    ctx.lineWidth = 9;
+    ctx.stroke();
+    ctx.strokeStyle = '#dde3ec';
+    ctx.lineWidth = 6.4;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 1.6;
+    ctx.save();
+    ctx.translate(-0.8, -1.2);
+    ctx.stroke();
+    ctx.restore();
+    // a face on the tip: two dots and a smile (it brightens when it has something to do)
+    ctx.beginPath();
+    ctx.arc(ex, ey, 7.6, 0, TAU);
+    ctx.fillStyle = '#e9edf3';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(60,70,86,0.5)';
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+    ctx.fillStyle = INK;
+    ctx.beginPath();
+    ctx.arc(ex - 2.6, ey - 1.6, 1.15, 0, TAU);
+    ctx.arc(ex + 2.6, ey - 1.6, 1.15, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(ex, ey + 0.6, 2.6, 0.15, Math.PI - 0.15);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  /* ---------------------------------------------------------------- the party: a disco ball and a guitar pick */
+  function discoBall(ctx, d, rt, t) {
+    const R = 17;
+    const spin = t * 1.4 + (rt.poke || 0) * 8;
+    ctx.beginPath();
+    ctx.arc(0, 0, R, 0, TAU);
+    ctx.fillStyle = rad(ctx, -5, -6, 1, R * 1.2, [0, '#ffffff', 0.5, '#aeb9cc', 1, '#5c6780']);
+    ctx.fill();
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, R, 0, TAU);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(40,50,70,0.4)';
+    ctx.lineWidth = 0.8;
+    for (let i = -3; i <= 3; i++) {
+      ctx.beginPath();
+      ctx.ellipse(0, 0, Math.abs(Math.cos(spin + i * 0.5)) * R, R, 0, 0, TAU);
+      ctx.stroke();
+    }
+    for (let j = -3; j <= 3; j++) {
+      ctx.beginPath();
+      ctx.moveTo(-R, j * 5);
+      ctx.lineTo(R, j * 5);
+      ctx.stroke();
+    }
+    ctx.restore();
+    // glints thrown across the rug
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 7; i++) {
+      const a = spin * 0.6 + i * 0.9,
+        r = 26 + ((i * 11) % 18) + Math.sin(t * 2 + i) * 4;
+      ctx.fillStyle = 'rgba(' + [255, 214, 140][i % 3] + ',' + [240, 170, 230][i % 3] + ',' + [200, 140, 255][i % 3] + ',' + (0.35 + 0.25 * Math.sin(t * 3 + i * 2)) + ')';
+      ctx.fillRect(Math.cos(a) * r - 1.4, Math.sin(a) * r - 1.4, 2.8, 2.8);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+  Art.DECOR2.discoball = { draw: discoBall, shadow: (ctx, d) => Art.shadow(ctx, d.x, d.y, 38, 38, 19, 0, 0.35, 0.45) };
+  Art.SECRETS2.guitarpick = function (ctx) {
+    ctx.beginPath();
+    ctx.moveTo(0, 8);
+    ctx.bezierCurveTo(9, 2, 8, -8, 0, -8);
+    ctx.bezierCurveTo(-8, -8, -9, 2, 0, 8);
+    ctx.fillStyle = lin(ctx, -8, -8, 8, 8, [0, '#ff9fb2', 1, '#d94a6a']);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
   };
 })();

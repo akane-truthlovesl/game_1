@@ -21,11 +21,29 @@ const res = await page.evaluate(async () => {
     chime0: (A) => A.chime(0), chime5: (A) => A.chime(5), star: (A) => A.star(1),
     win: (A) => A.win(5),
     riff: (A) => A.sfx.riff(),
+    // Act 2: the machines, the kitchen and the stingers
+    tock2: (A) => A.sfx.tock2(0.9), whistleFar: (A) => A.sfx.whistleFar(), splash: (A) => A.sfx.splash(), cling: (A) => A.sfx.cling(),
+    crackle: (A) => A.sfx.crackle(), clack: (A) => A.sfx.clack(), choke: (A) => A.sfx.choke(), detent: (A) => A.sfx.detent(), clunk: (A) => A.sfx.clunk(),
+    endstop: (A) => A.sfx.endstop(), ledrun: (A) => A.sfx.ledrun(3), rip: (A) => A.sfx.rip(), mend: (A) => A.sfx.mend(), wind: (A) => A.wind(1),
+    hum: (A) => A.hum(0.08, 0.4, 330), vKettle: (A) => A.voice('kettle', 3, 0), vToaster: (A) => A.voice('toaster', 3, 0), vDryer: (A) => A.voice('dryer', 3, 0),
+    // earned cosmetics: the four other chime sets and the five cable plucks
+    chimeMarimba: (A) => { A.settings({ chime: 'marimba' }); A.chime(5); }, chimeMusicBox: (A) => { A.settings({ chime: 'musicbox' }); A.chime(5); },
+    // Act 3 (the studio and the boss): the lullaby box, the groove and the bass voices, the lock, the teasers
+    chimeLullaby: (A) => { A.settings({ chime: 'lullaby' }); A.chime(5); },
+    kick: (A) => A.inst('kick', 36, 1, 0, 0), snare: (A) => A.inst('snare', 60, 1, 0, 0), tom: (A) => A.inst('tom', 50, 1, 0, 0),
+    hat: (A) => A.inst('hat', 84, 0.6, 0, 0), chordStack: (A) => A.inst('chord', 60, 0.6, 0, 0), bassPluck: (A) => A.inst('bass', 40, 0.6, 0, 0),
+    bellVoice: (A) => A.inst('bell', 79, 0.6, 0, 0), celestaTag: (A) => A.inst('celesta', 84, 0.5, 0, 0),
+    lockClick: (A) => A.sfx.lockClick(), padsFlash: (A) => A.sfx.padsFlash(), stationBeep: (A) => A.sfx.stationBeep(), spotOn: (A) => A.sfx.spotOn(),
+    bassWake: (A) => { A.inst('kick', 36, 1, 0, 0); A.inst('chord', 48, 0.5, 0, 0.3); A.chime(4); A.chime(8); },
+    chimeGlass: (A) => { A.settings({ chime: 'glass' }); A.chime(5); }, chimeKalimba: (A) => { A.settings({ chime: 'kalimba' }); A.chime(5); },
+    pluckRope: (A) => { A.settings({ skin: 'rope' }); A.pluck(64, 0.8, 0); }, pluckLicorice: (A) => { A.settings({ skin: 'licorice' }); A.pluck(64, 0.8, 0); },
+    pluckRibbon: (A) => { A.settings({ skin: 'ribbon' }); A.pluck(64, 0.8, 0); }, pluckNeon: (A) => { A.settings({ skin: 'neon' }); A.pluck(64, 0.8, 0); },
+    pluckBeads: (A) => { A.settings({ skin: 'beads' }); A.pluck(64, 0.8, 0); },
     padChord: (A) => { [0, 1, 2, 3].forEach((k, i) => setTimeout(() => {}, 0)); [0, 1, 2, 3].forEach((k) => A.pad.add(k)); },
   };
   const out = {}; const wavs = {};
   for (const name in cases) {
-    const secs = name === 'riff' ? 9.6 : name === 'win' || name === 'padChord' ? 3.2 : name === 'purr' ? 1.6 : 1.4;
+    const secs = name === 'riff' ? 9.6 : name === 'win' || name === 'padChord' ? 3.2 : name === 'whistleFar' ? 5.2 : name === 'purr' ? 1.6 : 1.4;
     const ctx = new OfflineAudioContext(2, SR * secs, SR);
     const A = G.createAudio(ctx);
     cases[name](A);
@@ -45,8 +63,8 @@ const res = await page.evaluate(async () => {
   }
   return { out, wavs };
 });
-console.log('name        peak   rms     dc       tail_s centroid_hz');
-for (const [k, v] of Object.entries(res.out)) console.log(k.padEnd(11), String(v.peak).padEnd(6), String(v.rms).padEnd(7), String(v.dc).padEnd(8), String(v.tail_s).padEnd(6), String(v.centroid_hz).padEnd(6), v.nan ? 'NaN!' : '');
+console.log('name        peak   rms     dc       tail_s centroid_hz  nan');
+for (const [k, v] of Object.entries(res.out)) console.log(k.padEnd(11), String(v.peak).padEnd(6), String(v.rms).padEnd(7), String(v.dc).padEnd(8), String(v.tail_s).padEnd(6), String(v.centroid_hz).padEnd(6), v.nan ? 'NaN!' : '', String(v.nan));
 // sampler: each sound, 0.25s gap
 const order = ['tick', 'magnet', 'thunk', 'thunkSoft', 'thunkHard', 'thunkSteel', 'thunkTile', 'thunkNight', 'thunkFat', 'tock', 'pluck', 'pluckLow', 'vPhone', 'vTablet', 'vLaptop', 'vConsole', 'vLamp', 'vRadio', 'vDrill', 'vSpeaker', 'chimeAct2', 'pop', 'knock', 'zap', 'click', 'twang', 'bip', 'powerdown', 'chime0', 'chime5', 'star', 'thud', 'cat', 'win', 'riff'];
 const SR = 32000; const gap = new Array(Math.floor(SR * 0.35)).fill(0); let all = [];
@@ -56,6 +74,7 @@ buf.write('RIFF', 0); buf.writeUInt32LE(36 + all.length * 2, 4); buf.write('WAVE
 all.forEach((v, i) => buf.writeInt16LE(v, 44 + i * 2));
 fs.mkdirSync('../../docs/audio', { recursive: true });
 fs.writeFileSync('../../docs/audio/sfx-sampler.wav', buf);
+{ const bad = Object.entries(res.out).filter(([, v]) => v.nan > 0 || v.peak > 1); console.log(bad.length ? 'NAN OR CLIP: ' + bad.map(([k]) => k).join(', ') : 'all sounds render finite and under full scale'); if (bad.length) process.exitCode = 1; }
 console.log('sampler:', order.join(' → '), (buf.length / 1024).toFixed(0) + ' KB');
 console.log('LOGS:', logs.length ? logs.join('\n') : 'none');
 await browser.close();

@@ -664,3 +664,243 @@ body.won #btnRestart {
 .pill.gold {
   background: linear-gradient(#ffe48a, #ffc84a);
 }
+
+/* the postcard: the level's caption, handwritten on a little taped card */
+#card {
+  position: absolute;
+  left: 50%;
+  bottom: calc(186px + var(--sab));
+  max-width: min(310px, 82vw);
+  padding: 12px 18px 11px;
+  background: #fbf3e0;
+  border-radius: 5px;
+  box-shadow: 0 10px 24px rgba(40, 24, 8, 0.38), 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  text-align: center;
+  color: #4a3a28;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(26px) rotate(-1.6deg) scale(0.9);
+  transition: transform 0.5s cubic-bezier(0.2, 1.7, 0.4, 1), opacity 0.3s;
+}
+#card.in {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) rotate(-1.6deg) scale(1);
+}
+#card::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  width: 64px;
+  height: 18px;
+  transform: translateX(-50%) rotate(2deg);
+  background: rgba(255, 214, 120, 0.7);
+  box-shadow: 0 1px 3px rgba(60, 40, 10, 0.25);
+}
+#card b {
+  display: block;
+  font: 800 10.5px var(--font);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(74, 58, 40, 0.55);
+  margin-bottom: 4px;
+}
+#card span {
+  display: block;
+  font: italic 600 18px/1.25 'Bradley Hand', 'Segoe Print', 'Chalkboard SE', 'Comic Sans MS', cursive;
+}
+/* postcards in the level sheet */
+.node.card {
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+.node.card i {
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------------------------------------------------------------- the House Map (level sheet) */
+#levels .card {
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+#grid {
+  display: flex;
+  flex-direction: column-reverse; /* the ground floor (Act 1) at the bottom, the roof on top */
+  gap: 0;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+#grid::-webkit-scrollbar {
+  display: none;
+}
+.floor,
+.ground,
+.roof {
+  flex: none;
+}
+.floor {
+  position: relative;
+  margin: 0 8px;
+  padding: 10px 10px 15px;
+  background: linear-gradient(#f1e5c9, #e6d4ab); /* Act 1: the study, warm paper and oak */
+  border-left: 6px solid #8d6c4a;
+  border-right: 6px solid #8d6c4a;
+  box-shadow: inset 0 -3px 0 rgba(120, 90, 50, 0.22);
+}
+.floor::after {
+  content: '';
+  position: absolute;
+  left: -6px;
+  right: -6px;
+  bottom: -7px;
+  height: 7px;
+  background: linear-gradient(#8d6c4a, #6f5238);
+  box-shadow: 0 3px 5px rgba(40, 24, 8, 0.3);
+  z-index: 2;
+}
+.floor.f2 {
+  background: linear-gradient(#e6e1d6, #d3c8b4); /* Act 2: plaster, tile and steel */
+}
+.floor.f3 {
+  background: linear-gradient(#efe0ee, #dccbe0); /* Act 3: the toy room and the studio */
+}
+.floor.f5 {
+  background: linear-gradient(#f4efe2, #e2d6bd); /* Act 5: the Lab's workbench, then the city at night */
+}
+.floor.f4 {
+  background: linear-gradient(#e3ecf7, #c5d5ea); /* Act 4: the station's pale cabin panels, and the wall */
+}
+.floor.lit {
+  background-image: linear-gradient(#fff2c8, #f5dca0);
+}
+.floor.gold {
+  box-shadow: inset 0 0 0 3px #ffd76a, 0 0 16px rgba(255, 214, 100, 0.6);
+}
+.floor .actHead {
+  display: inline-block;
+  margin: 0 0 9px;
+  padding: 3px 10px;
+  border-radius: 7px;
+  background: linear-gradient(#f7e7ae, #dcb96a);
+  color: #5a4020;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 0 rgba(120, 80, 20, 0.3);
+}
+.floor.gold .actHead::after {
+  content: ' ★';
+  color: #c98a00;
+}
+.floor .rooms {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 9px;
+}
+.floor .node {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px 14px 5px 5px;
+  background: linear-gradient(#2d2b52, #1a1830); /* a dark window: nobody has woken this room yet */
+  color: #cfc8ea;
+  box-shadow: inset 0 0 0 3px #f6eedd, inset 0 0 0 4px rgba(100, 70, 30, 0.4), 0 3px 0 rgba(100, 70, 30, 0.3);
+}
+.floor .node::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 11px 11px 3px 3px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent calc(50% - 1px), rgba(246, 238, 221, 0.5) calc(50% - 1px), rgba(246, 238, 221, 0.5) calc(50% + 1px), transparent calc(50% + 1px)),
+    linear-gradient(transparent calc(50% - 1px), rgba(246, 238, 221, 0.5) calc(50% - 1px), rgba(246, 238, 221, 0.5) calc(50% + 1px), transparent calc(50% + 1px));
+}
+.floor .node b,
+.floor .node span {
+  position: relative;
+  z-index: 1;
+}
+.floor .node.done {
+  background: radial-gradient(circle at 50% 38%, #fff7cf, #ffd682 72%);
+  color: #5a4020;
+  box-shadow: inset 0 0 0 3px #f6eedd, 0 0 14px rgba(255, 208, 110, 0.7), 0 3px 0 rgba(100, 70, 30, 0.3);
+}
+.floor .node.card {
+  color: #fff;
+}
+.floor .node.lock {
+  background: repeating-linear-gradient(90deg, #a85b4d 0 5px, #944a3d 5px 10px); /* curtains drawn */
+  opacity: 0.5;
+  color: #f6ded6;
+}
+.floor .node.lock::before {
+  display: none;
+}
+.ground {
+  height: 30px;
+  margin: 0 2px;
+  border-radius: 0 0 16px 16px;
+  background: linear-gradient(#86b36a, #5f8d49);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.ground span {
+  font: 800 11px var(--font);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #f1ffe4;
+  background: rgba(60, 40, 20, 0.5);
+  padding: 3px 14px;
+  border-radius: 8px 8px 0 0;
+}
+.roof {
+  position: relative;
+  margin: 0 0 -1px;
+}
+.roof svg {
+  display: block;
+  width: 100%;
+  height: 58px;
+}
+.roof span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  text-align: center;
+  font: 800 12px var(--font);
+  letter-spacing: 0.08em;
+  color: #fff3d8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------------------------------------------------------------- settings: earned cosmetics */
+.opt.pick {
+  gap: 10px;
+}
+.opt.pick span {
+  display: block;
+  text-align: left;
+}
+.opt.pick b {
+  font-weight: 900;
+}
+.opt.pick small {
+  display: block;
+  font: 700 11px var(--font);
+  color: rgba(70, 55, 40, 0.6);
+  margin-top: 2px;
+}
+.opt.pick canvas {
+  width: 132px;
+  height: 34px;
+  flex: none;
+}
+.opt.pick em {
+  font-style: normal;
+  font-size: 22px;
+  color: var(--gold);
+  flex: none;
+}

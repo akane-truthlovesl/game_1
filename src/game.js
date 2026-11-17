@@ -215,6 +215,11 @@
     if (!room || room.locked || room.phase !== 'playing') return;
     const e = room.undo.pop();
     if (!e) return;
+    if (e.block) {
+      // a block goes back where it was (a block that cannot, because something stands there now, keeps the undo for later)
+      if (!room.undoBlock(e)) room.undo.push(e);
+      return;
+    }
     const prt = room.plugRT[e.plug];
     if (!prt || !(prt.state === 'seated' || prt.state === 'rest')) return;
     room.cancelHint();
@@ -260,12 +265,49 @@
       if (ui) ui.onWin();
     } else if (name === 'stars') {
       G.Save.complete(this.levelId, a);
-      if (ui) ui.showStars(a);
+      this.announceUnlocks(2600);
+      this.captureCard(room);
+      if (ui) {
+        ui.showStars(a);
+        ui.showCard(room.def);
+      }
     } else if (name === 'settle') {
       if (ui) ui.showNext();
     } else if (name === 'secret') {
       G.Save.secret(this.levelId);
       if (ui) ui.toast('Secret found!');
+      this.announceUnlocks(2000);
+    }
+  };
+
+  // a cable skin or chime set was just earned: say so once, a moment after the win (never over the postcard)
+  Game.announceUnlocks = function (delay) {
+    const f = G.Meta ? G.Meta.fresh() : [];
+    if (!f.length) return;
+    setTimeout(() => {
+      const ui = UI();
+      if (ui) ui.toast('New ' + f[0].label.toLowerCase() + ': ' + f[0].name + (f.length > 1 ? ' (+' + (f.length - 1) + ' more)' : '') + ' — see Settings');
+    }, delay);
+  };
+
+  // a postcard: a small photo of the lit room (the mat and a little around it), kept with the level's caption
+  Game.captureCard = function (room) {
+    try {
+      if (!room.def.caption) return;
+      const V = this.view,
+        M = G.Art.MAT;
+      const k = V.dpr * V.scale;
+      const sx = (V.ox + (M.x - 8) * V.scale) * V.dpr,
+        sy = (V.oy + (M.y - 12) * V.scale) * V.dpr,
+        sw = (M.w + 16) * k,
+        sh = (M.h + 24) * k;
+      const cv = document.createElement('canvas');
+      cv.width = 132;
+      cv.height = Math.round((132 * sh) / sw);
+      cv.getContext('2d').drawImage(this.canvas, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+      G.Save.card(this.levelId, { img: cv.toDataURL('image/jpeg', 0.58), cap: room.def.caption, name: room.def.name });
+    } catch (e) {
+      /* a postcard is a bonus: never let it break a win */
     }
   };
 
@@ -330,7 +372,19 @@
     const ptr = { id: e.pointerId, kind: 'none', x: p.x, y: p.y, ts: e.timeStamp };
     this.ptrs[e.pointerId] = ptr;
     const sw = room.switchAt(p.x, p.y);
-    const prt = this.plugAt(room, p.x, p.y);
+    if (room.duetTap && room.duetTap(p.x, p.y)) return; // Act 5, Duet: the record dot
+    if (room.grabReel && room.grabReel(e.pointerId, p.x, p.y)) {
+      ptr.kind = 'reel'; // a cable's drum: wind it in or let it out (Act 5, Rewind)
+      return;
+    }
+    let prt = this.plugAt(room, p.x, p.y);
+    // a sliding strip's end cap is its handle: it wins over a seated plug that is only near (the plug still wins when touched squarely)
+    const gripped = room.gripAt && room.gripAt(p.x, p.y);
+    if (gripped && (!prt || prt.hitScore > 0.55) && room.grabStrip(gripped, e.pointerId, p.x, p.y)) {
+      ptr.kind = 'strip';
+      ptr.strip = gripped;
+      return;
+    }
     // a switch under the thumb wins over a plug that is merely near (a brick's overhang must not steal the tap)
     if (sw && !(prt && prt.hitScore < 0.5)) {
       room.flipSwitch(sw);
@@ -346,6 +400,30 @@
     if (rs && room.grabStrip(rs, e.pointerId, p.x, p.y)) {
       ptr.kind = 'strip';
       ptr.strip = rs;
+      return;
+    }
+    // a train's points, signal lever or engine: a tap
+    if (room.trackAt && room.trackAt(p.x, p.y)) {
+      room.idle = 0;
+      return;
+    }
+    // a carried strip's creature: press it and trace its road
+    if (room.carrierAt && room.carrierAt(p.x, p.y) && room.beginDraw(e.pointerId, p.x, p.y)) {
+      ptr.kind = 'draw';
+      return;
+    }
+    // an alphabet block: lift it and carry it
+    if (room.blockAt) {
+      const bi = room.blockAt(p.x, p.y);
+      if (bi >= 0 && room.beginBlock(bi, e.pointerId, p.x, p.y)) {
+        ptr.kind = 'block';
+        ptr.bi = bi;
+        return;
+      }
+    }
+    // the roll of tape
+    if (room.tapeAt && room.tapeAt(p.x, p.y) && room.grabTape(e.pointerId, p.x, p.y)) {
+      ptr.kind = 'tape';
       return;
     }
     // nudge a cable by its body (and pluck it: every cable is a string)
@@ -376,6 +454,19 @@
     }
     if (room.pokeAt(p.x, p.y)) {
       room.idle = 0;
+      return;
+    }
+    // bare floor in a room with a cat to herd: a spot of light appears under the thumb
+    if (room.beginSpot && room.beginSpot(e.pointerId, p.x, p.y)) {
+      ptr.kind = 'spot';
+      return;
+    }
+    if (room.beginTorch && room.beginTorch(e.pointerId, p.x, p.y)) {
+      ptr.kind = 'torch'; // a torch's pool goes under the thumb (Act 5, Torchlight)
+      return;
+    }
+    if (room.beginCrane && room.beginCrane(e.pointerId, p.x, p.y)) {
+      ptr.kind = 'crane'; // the magnet head on its cable (Act 5, Crane Game)
       return;
     }
     Fx.ring(p.x, p.y, 14, '#ffffff', 0.28, 1.4);
@@ -411,6 +502,13 @@
     ptr.y = p.y;
     if (ptr.kind === 'plug') this.room.moveGrab(ptr.prt, p.x, p.y);
     else if (ptr.kind === 'strip') this.room.moveStripGrab(ptr.strip, p.x, p.y);
+    else if (ptr.kind === 'tape') this.room.moveTape(p.x, p.y);
+    else if (ptr.kind === 'draw') this.room.moveDraw(p.x, p.y);
+    else if (ptr.kind === 'spot') this.room.moveSpot(p.x, p.y);
+    else if (ptr.kind === 'torch') this.room.moveTorch(p.x, p.y);
+    else if (ptr.kind === 'crane') this.room.moveCrane(p.x, p.y);
+    else if (ptr.kind === 'reel') this.room.moveReel(p.x, p.y);
+    else if (ptr.kind === 'block') this.room.moveBlock(ptr.bi, p.x, p.y);
     else if (ptr.kind === 'nudge') ptr.rope.nudge(ptr.i, p.x, p.y);
   };
   Game.onUp = function (e) {
@@ -425,6 +523,13 @@
     delete this.ptrs[id];
     if (ptr.kind === 'plug') this.room.releaseGrab(ptr.prt);
     else if (ptr.kind === 'strip') this.room.releaseStrip(ptr.strip);
+    else if (ptr.kind === 'tape') this.room.releaseTape();
+    else if (ptr.kind === 'draw') this.room.endDraw();
+    else if (ptr.kind === 'spot') this.room.endSpot();
+    else if (ptr.kind === 'torch') this.room.endTorch();
+    else if (ptr.kind === 'crane') this.room.endCrane();
+    else if (ptr.kind === 'reel') this.room.endReel();
+    else if (ptr.kind === 'block') this.room.endBlock(ptr.bi);
     else if (ptr.kind === 'nudge') {
       ptr.rope.endNudge();
       if (this.room && ptr.prt) this.room.pluckRope(ptr.prt, ptr.i / (ptr.rope.n - 1), 2.0);
@@ -552,7 +657,8 @@
     // fx in stage space, over the objects
     this.applyStage(ctx);
     Fx.draw(ctx, this.room ? this.room.offX : 0);
-    if (this.room) this.room.drawHint(ctx);
+    const hintLate = this.room && this.room.def.dark;
+    if (this.room && !hintLate) this.room.drawHint(ctx);
 
     /* ---- the light map ---- */
     if (this.room) {
@@ -593,6 +699,11 @@
         ctx.fillStyle = 'rgba(255,248,230,' + 0.85 * this.room.flash + ')';
         ctx.fillRect(0, 0, cw, ch);
       }
+    }
+    if (hintLate) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      this.applyStage(ctx);
+      this.room.drawHint(ctx);
     }
     if (G.debug) this.drawDebug(ctx);
   };

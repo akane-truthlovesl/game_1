@@ -56,10 +56,10 @@
   };
 
   // convex polygon (CCW-agnostic) approximating an obstacle inflated by `clr`
-  Geom.inflatedPolygon = function (ob, clr) {
+  Geom.inflatedPolygon = function (ob, clr, nSides) {
     const pts = [];
     if (ob.shape === 'circle') {
-      const N = 24;
+      const N = nSides || 24;
       const R = (ob.r + clr) / Math.cos(Math.PI / N);
       for (let i = 0; i < N; i++) {
         const a = ((i + 0.5) / N) * Math.PI * 2;
@@ -135,18 +135,39 @@
     return Math.sqrt(dx * dx + dy * dy) * (t1 - t0);
   }
 
-  // shortest path from a to b around tall obstacles (visibility graph + Dijkstra)
+  // shortest path from a to b around tall obstacles (visibility graph + Dijkstra).
+  // The polygons and the vertex-to-vertex visibility are cached per (obstacle list, clearance); only the edges from a and b are
+  // new per query. If a level ever moves an obstacle in place, call Geom.invalidate(obstacles).
+  const graphCache = new WeakMap();
+  Geom.invalidate = function (obstacles) {
+    graphCache.delete(obstacles);
+  };
+  function graphFor(obstacles, clr) {
+    let byClr = graphCache.get(obstacles);
+    if (!byClr) graphCache.set(obstacles, (byClr = new Map()));
+    const key = clr + ':' + obstacles.length;
+    let g = byClr.get(key);
+    if (!g) {
+      const tall = obstacles.filter((o) => o.tall !== false);
+      const polys = tall.map((o) => Geom.inflatedPolygon(o, clr, o.shape === 'circle' && o.r < 14 ? 12 : 24));
+      const verts = [];
+      for (const poly of polys) for (const v of poly) verts.push(v);
+      g = { polys, verts, vis: new Int8Array(verts.length * verts.length) };
+      byClr.set(key, g);
+    }
+    return g;
+  }
   Geom.shortest = function (a, b, obstacles, clr) {
-    const tall = obstacles.filter((o) => o.tall !== false);
-    if (!tall.length) return { len: Math.hypot(b.x - a.x, b.y - a.y), pts: [a, b] };
-    const polys = tall.map((o) => Geom.inflatedPolygon(o, clr));
+    const g = graphFor(obstacles, clr);
+    const polys = g.polys;
+    if (!polys.length) return { len: Math.hypot(b.x - a.x, b.y - a.y), pts: [a, b] };
     const blocked = (p, q) => {
       for (let i = 0; i < polys.length; i++) if (segBlocked(p.x, p.y, q.x, q.y, polys[i])) return true;
       return false;
     };
     if (!blocked(a, b)) return { len: Math.hypot(b.x - a.x, b.y - a.y), pts: [a, b] };
-    const nodes = [a, b];
-    for (const poly of polys) for (const v of poly) nodes.push(v);
+    const V = g.verts.length;
+    const nodes = [a, b].concat(g.verts);
     const N = nodes.length;
     const dist = new Array(N).fill(Infinity),
       prev = new Array(N).fill(-1),
@@ -162,7 +183,19 @@
         if (done[v]) continue;
         const d = Math.hypot(nodes[v].x - nodes[u].x, nodes[v].y - nodes[u].y);
         if (dist[u] + d >= dist[v]) continue;
-        if (blocked(nodes[u], nodes[v])) continue;
+        let bl;
+        if (u >= 2 && v >= 2) {
+          // vertex to vertex: cached
+          const k = (u - 2) * V + (v - 2);
+          let c = g.vis[k];
+          if (!c) {
+            c = blocked(nodes[u], nodes[v]) ? 2 : 1;
+            g.vis[k] = c;
+            g.vis[(v - 2) * V + (u - 2)] = c;
+          }
+          bl = c === 2;
+        } else bl = blocked(nodes[u], nodes[v]);
+        if (bl) continue;
         dist[v] = dist[u] + d;
         prev[v] = u;
       }

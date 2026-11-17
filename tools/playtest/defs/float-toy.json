@@ -1,0 +1,21 @@
+{
+ "id": 99,
+ "act": 4,
+ "name": "Float (toy, no goal)",
+ "cls": "puzzle",
+ "dawn": 0.5,
+ "world": "station",
+ "par": 2,
+ "tidy": false,
+ "settleCurl": -0.25,
+ "strips": [
+  { "id": "G1", "kind": "grommet", "x": 110, "y": 250, "slots": 1, "pitch": 40, "angle": 0, "sockets": [ { "key": "coral" } ] },
+  { "id": "G2", "kind": "grommet", "x": 250, "y": 250, "slots": 1, "pitch": 40, "angle": 0, "sockets": [ { "key": "amber" } ] },
+  { "id": "G3", "kind": "grommet", "x": 180, "y": 430, "slots": 1, "pitch": 40, "angle": 0, "sockets": [ { "key": "sky" } ] }
+ ],
+ "devices": [
+  { "id": "pip", "label": "Pip", "type": "phone", "x": 110, "y": 120, "color": "coral", "cable": { "len": 330, "curl": 1 }, "plug": { "key": "coral" }, "rest": { "x": 150, "y": 300 } },
+  { "id": "rex", "label": "Rex", "type": "radio", "x": 250, "y": 120, "color": "amber", "cable": { "len": 330, "curl": -1 }, "plug": { "key": "amber" }, "rest": { "x": 200, "y": 300 } }
+ ],
+ "decor": []
+}

@@ -29,6 +29,8 @@
     // k: optional 0..1.5 intensity multiplier (a gentle placement is a softer tap than a fling)
     pulse(name, k) {
       if (!H.enabled) return;
+      // Chrome refuses a vibration until the first touch and logs the refusal: a level's early beat simply waits for that touch
+      if (H.supported && typeof navigator !== 'undefined' && navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
       const p = PAT[name];
       if (p === undefined) return;
       const sc = H.scale * (k === undefined ? 1 : k);

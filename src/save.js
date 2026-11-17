@@ -8,7 +8,9 @@
     level: 1, // furthest unlocked
     stars: {}, // id -> [lit, tidy, clean]
     secrets: {}, // id -> true
-    settings: { sound: true, music: true, haptics: true, reduce: false, patterns: false, leftHand: false },
+    cards: {}, // id -> { img (small jpeg data URL), cap, name }: the postcards
+    seen: {}, // 'skin:rope' -> true: earned cosmetics the player has already been told about (meta.js)
+    settings: { sound: true, music: true, haptics: true, reduce: false, patterns: false, leftHand: false, skin: 'braid', chime: 'bell' },
   });
   const S = (G.Save = {
     data: defaults(),
@@ -32,6 +34,11 @@
       S.data.stars[id] = [cur[0] || stars.lit, cur[1] || stars.tidy, cur[2] || stars.clean];
       if (id + 1 > S.data.level) S.data.level = id + 1;
       S.save();
+    },
+    card(id, c) {
+      S.data.cards = S.data.cards || {};
+      S.data.cards[id] = c;
+      S.save(); // (storage may be full or unavailable: save() never throws)
     },
     secret(id) {
       S.data.secrets[id] = true;

@@ -1,0 +1,27 @@
+{
+ "id": 99,
+ "act": 5,
+ "name": "Crane (toy, no goal)",
+ "cls": "puzzle",
+ "dawn": 0.5,
+ "world": "lab",
+ "par": 2,
+ "tidy": false,
+ "waive": ["luck"],
+ "crane": {
+  "start": { "x": 180, "y": 110 },
+  "tray": { "x": 290, "y": 120, "w": 90, "h": 60 },
+  "prizes": [
+   { "id": "c", "letter": "C", "x": 150, "y": 520, "w": 60, "h": 40 },
+   { "id": "r", "letter": "R", "x": 210, "y": 520, "w": 50, "h": 40 }
+  ]
+ },
+ "strips": [
+  { "id": "B", "x": 180, "y": 520, "slots": 2, "pitch": 60, "angle": 0, "sockets": [ { "key": "coral" }, { "key": "amber" } ] }
+ ],
+ "devices": [
+  { "id": "pip", "label": "Pip", "type": "phone", "x": 60, "y": 300, "color": "coral", "cable": { "len": 300, "curl": 1 }, "plug": { "key": "coral" }, "rest": { "x": 60, "y": 380 } },
+  { "id": "rex", "label": "Rex", "type": "radio", "x": 300, "y": 300, "color": "amber", "cable": { "len": 300, "curl": -1 }, "plug": { "key": "amber" }, "rest": { "x": 300, "y": 380 } }
+ ],
+ "decor": []
+}

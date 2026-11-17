@@ -1,0 +1,21 @@
+{
+ "id": 99,
+ "act": 4,
+ "name": "Stretch (toy, no goal)",
+ "cls": "puzzle",
+ "dawn": 0.5,
+ "world": "station",
+ "sling": true,
+ "par": 2,
+ "tidy": false,
+ "settleCurl": -0.25,
+ "strips": [
+  { "id": "G1", "kind": "grommet", "x": 300, "y": 220, "slots": 1, "pitch": 40, "angle": 0, "sockets": [ { "key": "coral" } ] },
+  { "id": "G2", "kind": "grommet", "x": 300, "y": 400, "slots": 1, "pitch": 40, "angle": 0, "sockets": [ { "key": "amber" } ] },
+  { "id": "G3", "kind": "grommet", "x": 60, "y": 500, "slots": 1, "pitch": 40, "angle": 0, "sockets": [ { "key": "sky" } ] }
+ ],
+ "devices": [
+  { "id": "squeak", "label": "Squeak", "type": "console", "x": 180, "y": 300, "color": "coral", "cable": { "len": 240, "curl": 1 }, "plug": { "key": "coral" }, "rest": { "x": 180, "y": 380 } }
+ ],
+ "decor": []
+}

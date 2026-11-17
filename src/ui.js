@@ -44,6 +44,7 @@
           <button id="btnHint" class="rb" aria-label="Hint">${ICON.hint}</button>
         </div>
         <div id="stars"></div>
+        <div id="card"><b id="cardTitle"></b><span id="cardText"></span></div>
         <button id="next" class="off"><span>Next</span><i>▸</i></button>
         <div id="toast"></div>
       </div>
@@ -166,7 +167,7 @@
     UI.hideNext();
     UI.winShown = false;
     document.body.classList.remove('won');
-    UI.setPips(0, def.devices.length);
+    UI.setPips(0, def.devices.filter((d) => d.required !== false).length);
     $('btnHint').classList.remove('glow', 'breath');
   };
   UI.onToy = function () {
@@ -194,6 +195,17 @@
     document.body.classList.add('won');
     $('bottom').classList.add('dim');
   };
+  UI.showCard = function (def) {
+    if (!def || !def.caption) return;
+    $('cardTitle').textContent = 'Level ' + def.id + ' · ' + def.name;
+    $('cardText').textContent = def.caption;
+    clearTimeout(UI.cardT);
+    UI.cardT = setTimeout(() => $('card').classList.add('in'), 900);
+  };
+  UI.hideCard = function () {
+    clearTimeout(UI.cardT);
+    $('card').classList.remove('in');
+  };
   UI.showStars = function (s) {
     const box = $('stars');
     const names = ['Lit', 'Tidy', 'Clean'];
@@ -218,6 +230,7 @@
     requestAnimationFrame(() => $('next').classList.add('in'));
   };
   UI.hideNext = function () {
+    UI.hideCard();
     UI.nextShown = false;
     $('next').classList.remove('in');
     $('next').classList.add('off');
@@ -264,6 +277,8 @@
   UI.showLevels = function () {
     UI.buildLevels();
     UI.openSheet('levels');
+    const cur = UI.houseCurrent;
+    if (cur) requestAnimationFrame(() => cur.scrollIntoView({ block: 'center' }));
   };
   UI.showSettings = function () {
     UI.buildSettings();
@@ -279,34 +294,80 @@
     $('aeAgain').textContent = 'Replay Act ' + act.n;
     UI.openSheet('actend');
   };
+  // the House Map: the ground at the bottom, one floor per act (the house grows upward as the game does), the roof on top.
+  // CSS reverses the stack, so the DOM stays in level order. A solved room lights its window (with its postcard as the view),
+  // an act whose rooms are all lit warms its floor, and finding every secret of an act gilds its frame.
   UI.buildLevels = function () {
     const grid = $('grid');
     const d = G.Save.data;
     grid.innerHTML = '';
-    let lastAct = 0;
+    const ground = document.createElement('div');
+    ground.className = 'ground';
+    ground.innerHTML = '<span>Snug</span>';
+    grid.appendChild(ground);
+    const acts = G.Acts || [];
+    const floors = {};
+    let rooms = grid,
+      lit = 0,
+      current = null;
     G.Levels.forEach((def) => {
-      const act = (G.Acts || []).find((a) => def.id >= a.from && def.id <= a.to);
-      if (act && act.n !== lastAct) {
-        lastAct = act.n;
+      const act = acts.find((a) => def.id >= a.from && def.id <= a.to);
+      if (act && !floors[act.n]) {
+        const f = document.createElement('div');
+        f.className = 'floor f' + act.n;
         const h = document.createElement('div');
         h.className = 'actHead';
         h.textContent = 'Act ' + act.n + ' · ' + act.name;
-        grid.appendChild(h);
+        const r = document.createElement('div');
+        r.className = 'rooms';
+        f.appendChild(h);
+        f.appendChild(r);
+        grid.appendChild(f);
+        floors[act.n] = { el: f, rooms: r, ids: [], secrets: [], lit: 0 };
       }
+      const F = act && floors[act.n];
+      if (F) rooms = F.rooms;
       const unlocked = def.id <= d.level || d.level >= 99;
       const st = d.stars[def.id] || [false, false, false];
       const b = document.createElement('button');
       b.className = 'node' + (unlocked ? '' : ' lock') + (st[0] ? ' done' : '');
       b.innerHTML = '<b>' + def.id + '</b><span>' + st.map((v) => '<i class="' + (v ? 'on' : '') + '"></i>').join('') + '</span>';
       b.title = def.name;
+      const card = d.cards && d.cards[def.id];
+      if (card && card.img && st[0]) {
+        b.classList.add('card');
+        b.style.backgroundImage = 'linear-gradient(rgba(20,16,30,0.05), rgba(20,16,30,0.5)), url(' + card.img + ')';
+      }
+      if (st[0]) lit++;
+      if (F) {
+        F.ids.push(def.id);
+        if (st[0]) F.lit++;
+        if (def.secret) F.secrets.push(!!d.secrets[def.id]);
+      }
+      if (unlocked && !st[0] && !current) current = b; // the first room still dark is where the player is
       b.onclick = () => {
         if (!unlocked) return;
         UI.closeSheet('levels');
         UI.hideMenu();
         G.Game.startLevel(def.id);
       };
-      grid.appendChild(b);
+      rooms.appendChild(b);
     });
+    for (const n in floors) {
+      const F = floors[n];
+      if (F.lit === F.ids.length) F.el.classList.add('lit');
+      if (F.secrets.length && F.secrets.every(Boolean)) F.el.classList.add('gold');
+    }
+    const roof = document.createElement('div');
+    roof.className = 'roof';
+    roof.innerHTML =
+      '<svg viewBox="0 0 320 70" preserveAspectRatio="none"><defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b4705a"/><stop offset="1" stop-color="#8a4f40"/></linearGradient></defs>' +
+      '<rect x="236" y="2" width="26" height="30" rx="3" fill="#7d4a3d"/><rect x="232" y="0" width="34" height="7" rx="3" fill="#946052"/>' +
+      '<polygon points="0,70 44,10 276,10 320,70" fill="url(#rg)"/><polygon points="0,70 44,10 276,10 320,70" fill="none" stroke="rgba(255,235,210,0.35)" stroke-width="2"/>' +
+      '<g stroke="rgba(60,25,18,0.28)" stroke-width="1.4">' + [26, 42, 58].map((y) => '<line x1="' + (40 - (y - 10) * 0.9) + '" y1="' + y + '" x2="' + (280 + (y - 10) * 0.9) + '" y2="' + y + '"/>').join('') + '</g></svg>' +
+      '<span>' + lit + ' of ' + G.Levels.length + ' rooms lit</span>';
+    grid.appendChild(roof);
+    UI.houseCurrent = current || grid.querySelector('.node:last-of-type');
   };
   UI.buildSettings = function () {
     const box = $('opts');
@@ -329,6 +390,41 @@
     row('haptics', 'Haptics', (v) => (G.Haptics.enabled = v));
     row('reduce', 'Reduce motion', (v) => (G.Fx.reduce = v));
     row('patterns', 'Shape patterns', (v) => (G.Art.patternMode = v));
+    // earned cosmetics: tap to cycle through what has been earned; the next reward and how to get it is shown underneath
+    const picker = (kind) => {
+      const K = G.Meta.KINDS[kind];
+      const b = document.createElement('button');
+      b.className = 'opt pick';
+      const render = () => {
+        const cur = G.Meta.item(kind, G.Meta.pick(kind));
+        const next = K.items.find((i) => !i.ok());
+        b.innerHTML =
+          '<span>' + K.label + ': <b>' + cur.name + '</b><small>' + (next ? 'Next: ' + next.name + ' — ' + next.how : 'Everything earned') + '</small></span>' +
+          (kind === 'skin' ? '<canvas width="264" height="68"></canvas>' : '<em>♪</em>');
+        if (kind === 'skin') {
+          const c = b.querySelector('canvas').getContext('2d');
+          c.scale(2, 2);
+          G.Art.cableSample(c, 132, 34, cur.id, '#e4685a');
+        }
+      };
+      b.onclick = () => {
+        G.Meta.cycle(kind);
+        render();
+        const A = G.Audio;
+        if (kind === 'skin') {
+          A.pluck(64, 0.7, 0);
+          setTimeout(() => A.pluck(67, 0.6, 0), 130);
+        } else {
+          A.chime(3);
+          setTimeout(() => A.chime(5), 140);
+          setTimeout(() => A.chime(7), 280);
+        }
+      };
+      render();
+      box.appendChild(b);
+    };
+    picker('skin');
+    picker('chime');
     const reset = document.createElement('button');
     reset.className = 'opt danger';
     reset.innerHTML = '<span>Reset progress</span><i>⟲</i>';

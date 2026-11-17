@@ -13,6 +13,12 @@
   const A = () => G.Audio;
   const H = () => G.Haptics;
 
+  // the obstacles a cable meets: the level's own, and (on a lanes level) the bars of every gate that is another cable's lane
+  Room.prototype.obsFor = function (prt) {
+    if (!this.L.lanes) return this.L.obstacles;
+    if (!prt._obs) prt._obs = this.L.obstacles.concat(Rules.laneBars(this.L, prt.plug.key));
+    return prt._obs;
+  };
   Room.prototype.gateInit = function () {
     this.gateRT = {};
     this.st.thread = {};
@@ -46,9 +52,11 @@
         for (let i = 0; i < r.n; i += 2) pts.push({ x: r.x[i], y: r.y[i] });
         pts.push({ x: r.x[r.n - 1], y: r.y[r.n - 1] });
         for (const g of via) {
-          const now = through(pts, g.a, g.b);
-          const key = prt.id + '|' + g.id;
           const cur = !!this.st.thread[prt.id][g.id];
+          let now = through(pts, g.a, g.b);
+          // a lanes clip snaps: a seated cable that has run through it stays latched, even as the slack of the cable settles (Level 38)
+          if (this.def.lanes && cur && !now && this.st.seat[prt.id]) now = true;
+          const key = prt.id + '|' + g.id;
           // debounce: a reading must hold for two checks (100 ms) before the gate flips
           if (now === cur) this.thrCnt[key] = 0;
           else {
@@ -84,6 +92,12 @@
 
   Room.prototype.onThread = function (prt, g, on) {
     const gr = this.gateRT[g.id];
+    if (on) {
+      // every time a cable threads a clip is counted: a lane's golden clip needs each one threaded once, never twice (Level 38)
+      this.threadOns = this.threadOns || {};
+      const k = prt.id + '|' + g.id;
+      this.threadOns[k] = (this.threadOns[k] || 0) + 1;
+    }
     const pan = this.pan(g.x);
     if (on) {
       gr.pop = 1;
@@ -98,6 +112,64 @@
       A().at(pan, () => A().sfx.powerdown());
     }
     this.onEvent('thread', { plug: prt.id, gate: g.id, on });
+  };
+
+  // the light rivers (Level 40): once the hall wakes, a light runs down each laid cable, from its device to its socket, over and over
+  Room.prototype.riverDraw = function (ctx, t) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const head = (t * 0.35) % 1; // one pulse of light travels each cable, device to socket, every few seconds
+    for (const prt of this.plugList) {
+      const r = prt.rope,
+        n = r.n;
+      for (let i = 0; i < n; i += 3) {
+        const f = i / n,
+          pulse = Math.max(0, 1 - Math.abs(f - head) * 5);
+        ctx.globalAlpha = 0.12 + 0.6 * pulse;
+        ctx.beginPath();
+        ctx.arc(r.x[i], r.y[i], 2.6, 0, Math.PI * 2);
+        ctx.fillStyle = '#bff3ff';
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  };
+
+  // Lanes (Level 38): the golden clip when every cable ran each of its clips once, and touched none twice
+  Room.prototype.lanesWakeCheck = function () {
+    if (!this.def.secret || this.secretFound) return;
+    const need = [];
+    for (const p of this.L.plugs) for (const g of p.device.via) need.push(p.id + '|' + g.id);
+    if (!need.length || !need.every((k) => ((this.threadOns || {})[k] || 0) === 1)) return;
+    this.secretFound = true;
+    this.later(0.9, () => this.onEvent('secret', this.def.secret));
+  };
+
+  // a hoop gently funnels a carried plug toward its gap while the cable has not yet been run through it:
+  // threading a needle with a thumb should be a pleasure, not a precision test
+  Room.prototype.gateFunnel = function (prt, tx, ty) {
+    const via = prt.plug.device.via;
+    if (!via.length || !this.st.thread) return [tx, ty];
+    const th = this.st.thread[prt.id];
+    for (const g of via) {
+      if (th[g.id]) continue;
+      const ax = Math.cos(g.rot),
+        ay = Math.sin(g.rot),
+        nx = -ay,
+        ny = ax;
+      const dx = tx - g.x,
+        dy = ty - g.y;
+      const dn = dx * nx + dy * ny, // distance along the crossing direction
+        dl = dx * ax + dy * ay; // sideways offset from the gap's middle
+      if (Math.abs(dn) >= 46 || Math.abs(dl) >= 52) continue;
+      // inside the corridor in front of (and just behind) the gap, ease the sideways error toward zero
+      const w = 0.78 * U.smoothstep(46, 8, Math.abs(dn)) * U.smoothstep(52, 30, Math.abs(dl));
+      const dl2 = dl * (1 - w);
+      prt.funnel = g.id;
+      this.gateRT[g.id].hint = Math.max(this.gateRT[g.id].hint, 0.3 * w);
+      return [g.x + nx * dn + ax * dl2, g.y + ny * dn + ay * dl2];
+    }
+    return [tx, ty];
   };
 
   // a seated cable whose device is not waking: say why (once per plug) by blinking the hoops it still needs

@@ -10,6 +10,9 @@ const S = (p) => require(path.join(__dirname, '..', 'src', p));
 ['util.js', 'tune.js', 'geom.js', 'rope.js', 'rules.js'].forEach(S);
 S('levels/world1.js');
 S('levels/world2.js');
+S('levels/world3.js');
+S('levels/world4.js');
+S('levels/world5.js');
 const G = globalThis.Snug;
 const R = G.Rules;
 
@@ -64,7 +67,7 @@ for (const def of levels) {
   for (const d of L.devices) {
     const n = Math.max(8, Math.min(64, Math.ceil(d.len / G.T.segLen) + 1));
     const ox = new Float64Array(n), oy = new Float64Array(n);
-    G.Rope.arcPoints(d.port.x, d.port.y, d.rest.x, d.rest.y, d.len, n, d.curl, ox, oy);
+    G.Rope.restPoints(d.port.x, d.port.y, d.rest.x, d.rest.y, d.len, n, d.curl, ox, oy);
     let bad = false;
     for (let i = 0; i < n; i++) if (ox[i] < -2 || ox[i] > 362 || oy[i] < 0 || oy[i] > 636) bad = true;
     if (bad) hardMsgs.push('resting arc of ' + d.id + ' leaves the stage');
@@ -126,15 +129,17 @@ for (const def of levels) {
     R.syncRails(L, g);
     for (const p of L.plugs) maxRatio = Math.max(maxRatio, L.reach[p.id][g.seat[p.id]].ratio);
     R.syncRails(L, R.newState(L));
-  } else if (best) for (const p of L.plugs) maxRatio = Math.max(maxRatio, L.reach[p.id][best[p.id]].ratio);
+  } else if (best) for (const p of L.plugs) if (best[p.id]) maxRatio = Math.max(maxRatio, (L.reachSolve || L.reach)[p.id][best[p.id]].ratio);
   if (maxRatio > R.CFG.reachDesign + 1e-9) (waive.includes('margin') ? warnMsgs : hardMsgs).push('intended solution uses ' + (maxRatio * 100).toFixed(1) + '% of a cable (>94%)');
   // the intended tidy solution must stay tidy once its cables settle into arcs (settleCurl), and the arcs must fit
   if (bestTidy && wantsTidy && railLevel) R.syncRails(L, railInfo.best.st);
-  if (bestTidy && wantsTidy) {
+  // (hoop cables keep the route they were threaded along; they never relax into arcs, so there is no arc to fit)
+  if (bestTidy && wantsTidy && !L.gates.length) {
     const test = (sc) => {
       const arcs = [];
       let ok = true;
       for (const p of L.plugs) {
+        if (!bestTidy[p.id]) continue; // a temporary helper is not part of the final arrangement
         const dev = p.device, sk = L.socketsById[bestTidy[p.id]];
         const n = Math.max(8, Math.min(64, Math.ceil(dev.len / G.T.segLen) + 1));
         const ox = new Float64Array(n), oy = new Float64Array(n);
@@ -153,7 +158,17 @@ for (const def of levels) {
   }
   if (railLevel) R.syncRails(L, R.newState(L));
   // rail levels: reach ambiguity is a property of the sweet spot, not of every detent (the strip is felt, not computed)
-  const amb = railLevel ? [] : R.ambiguousReach(L);
+  if (L.carried.length) {
+    // a carried strip must have a road from its start to its dock, and every cable must reach with the strip at the dock
+    const v = L.carried[0].carrier.track ? R.verifyTrack(L) : L.carried[0].carrier.mode === 'wind' ? R.verifyWind(L) : L.carried[0].carrier.mode === 'pendulum' ? R.verifyPendulum(L) : R.verifyCarrier(L);
+    if (!v.ok) hardMsgs.push('carrier: ' + v.why);
+  }
+  if (L.blocks) {
+    // pushable blocks: the solved layout is legal and clean, the start is not solved, a plan frees the outlets, the cables reach
+    const v = R.verifyBlocks(L);
+    if (!v.ok) hardMsgs.push('blocks: ' + v.why);
+  }
+    const amb = railLevel ? [] : R.ambiguousReach(L);
   if (amb.length) (waive.includes('ambiguousReach') ? warnMsgs : hardMsgs).push('ambiguous reach (barely reaches / barely short): ' + amb.slice(0, 6).join(', ') + (amb.length > 6 ? ' …' : ''));
   // par
   const minSeats = L.plugs.length;
@@ -207,8 +222,8 @@ for (const def of levels) {
       console.log('   reach ratios (needed/len): rows = plugs, cols = sockets');
       console.log('   ' + ' '.repeat(10) + L.sockets.map((s) => s.id.padStart(6)).join(''));
       for (const p of L.plugs)
-        console.log('   ' + p.id.padEnd(10) + L.sockets.map((s) => (L.reach[p.id][s.id].ratio.toFixed(2) + (Rules_fits(p, s) ? ' ' : '*')).padStart(6)).join('') + '   len ' + p.device.len);
-      const some = useSols.slice(0, 4).map((m) => L.plugs.map((p) => p.id + '→' + m[p.id]).join(' '));
+        console.log('   ' + p.id.padEnd(10) + L.sockets.map((s) => ((L.reachSolve || L.reach)[p.id][s.id].ratio.toFixed(2) + (Rules_fits(p, s) ? ' ' : '*')).padStart(6)).join('') + '   len ' + p.device.len);
+      const some = useSols.slice(0, 4).map((m) => L.plugs.filter((p) => m[p.id]).map((p) => p.id + '→' + m[p.id]).join(' '));
       console.log('   solutions (first ' + some.length + '): \n     ' + some.join('\n     '));
     }
     if (showMap) console.log(asciiMap(L));

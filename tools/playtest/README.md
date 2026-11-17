@@ -16,6 +16,9 @@ node feel.mjs                 # feel probes from the Feel Bible (response, relea
 node touch.mjs                # real touch events via CDP + the tuning panel
 node audio.mjs                # renders every sound offline, reports peak/DC/centroid, rewrites docs/audio/sfx-sampler.wav
 node finale-shots.mjs         # screenshots of the Act 1 finale
+node timer.mjs               # Level 18: early release refused, grace wait, stays seated, egg-timer reset, the rising phrase
+node dark.mjs                # Level 19: quiet hands keep Biscuit asleep, a shaking carry wakes her, she sits on a socket, a tap pets her
+TIMELINE=9 node shots.mjs 20 l20   # storyboard of a level plus 9 timeline frames of the Settle (the Level 20 finale)
 ```
 
 Screenshots land in `out/`. Notes: frame-rate numbers from headless Chrome use a software rasterizer and say nothing about phones; haptics and speakers can only be judged on a real device.

@@ -1,0 +1,26 @@
+{
+ "id": 99,
+ "act": 4,
+ "name": "Swing (toy, no goal)",
+ "cls": "puzzle",
+ "dawn": 0.5,
+ "world": "station",
+ "par": 3,
+ "tidy": false,
+ "waive": ["luck"],
+ "strips": [
+  { "id": "Choo", "x": 180, "y": 440, "slots": 3, "pitch": 34, "angle": 0,
+    "sockets": [
+      { "key": "coral", "timer": { "period": 2.6, "on": 0.8, "phase": -0.4 } },
+      { "key": "amber", "timer": { "period": 2.6, "on": 0.8, "phase": -0.4 } },
+      { "key": "sky", "timer": { "period": 2.6, "on": 0.8, "phase": -0.4 } }
+    ],
+    "carrier": { "mode": "pendulum", "pivot": { "x": 180, "y": 80 }, "len": 360, "amp": 0.28, "period": 5.2 } }
+ ],
+ "devices": [
+  { "id": "squeak", "label": "Squeak", "type": "console", "x": 60, "y": 540, "color": "coral", "cable": { "len": 300, "curl": 1 }, "plug": { "key": "coral" }, "rest": { "x": 60, "y": 470 } },
+  { "id": "spike", "label": "Spike", "type": "drill", "x": 180, "y": 560, "color": "amber", "cable": { "len": 300, "curl": 1 }, "plug": { "key": "amber" }, "rest": { "x": 180, "y": 500 } },
+  { "id": "dot", "label": "Dot", "type": "phone", "x": 300, "y": 540, "color": "sky", "cable": { "len": 300, "curl": 1 }, "plug": { "key": "sky" }, "rest": { "x": 300, "y": 470 } }
+ ],
+ "decor": []
+}

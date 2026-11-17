@@ -13,26 +13,27 @@ Never mass-produce levels: every level gets an identity card (§5), passes the v
 
 ## 0 · STATUS & NEXT ACTIONS *(the only part that changes often)*
 
-**Last updated:** 2026-11-14, Pass 02 v2 (originality pass) written; Phase 2 build starting with B0 (the feel layer).
+**Last updated:** 2026-11-17 (50 levels built and gated; the finale has its lullaby and credits cable; committed locally as 1570ac9; the phone feel verdicts are the user's to give; Level 10 Tidy stays unpromised; levels keep their mechanics by the user's choice).
 
 | Layer | State |
 | --- | --- |
 | Design: GDD (index + 10 chapters), Pass 01, Pass 02 | Written (`docs/`) |
 | Engine + feel stack (cable physics, plug state machine, magnet, seat, light, audio, haptics, UI) | **Built, verified headlessly** |
 | Act 1 · The Desk (levels 1–10) | **Built.** Validator green, 54 rule tests, real-drag bot completes all 10, UI flow + touch + feel probes pass |
-| Act 2 · Workshop & Kitchen (11–20) | **Redesigned as an originality pass (v2)** in `docs/passes/pass-02-levels-11-20.md`; **being built now** (see §0 B) |
-| Acts 3–5 (21–50) | **Seeds only** (§6): each still needs its own deep pass before it is built |
-| Meta layer (House Map, postcards, cast cards, skins, daily…) | Designed in `docs/gdd/08-hook-and-retention.md`; **not built** (level select is a plain grid) |
+| Act 2 · Workshop & Kitchen (11–20) | **Built** (rail, hoops, Y-plug, tape, chain, wet+helper, breaker, timers, dark, the boss): `docs/passes/pass-02-levels-11-20.md` has the as-built log; validator green, real-drag bot solves all ten |
+| Act 3 · The Toy Room (21–30) | **Built and gated** (`docs/passes/pass-03-levels-21-30.md`, C0–C10): carried strip, herding, train, wind-up toy, pushable blocks, the chain, the sequencer, the bass lock, the groove and the boss (Level 30 is a composition of the three) |
+| Acts 4–5 (31–50) | **Act 4 built and gated** (levels 31–40, Pass 04 §9). **Act 5 under way** (`docs/passes/pass-05-levels-41-50.md`): All ten levels 41–50 are built and gated (Pass 05 §9 E20): Fan Mail, Torchlight, Crane Game, Ghost Cables, Mirror Mirror, Dollhouse (re-carded), Rewind (a cable reel), Duet With Yourself, Brownout (re-carded), Blackout. The whole game is 50 levels. |
+| Meta layer (House Map, postcards, cast cards, skins, daily…) | Designed in `docs/gdd/08-hook-and-retention.md`; **built (B11):** the House Map level select (a floor per act, lit windows, gold frames), postcards, six cable skins, five chime sets; cast cards and the daily are not built |
 
 **Owed to the user (cannot be verified here):** a phone session. Real *feel* (weight, lag, snap), haptics, speakers, iOS audio/vibration, GPU frame rate, and a human reading of the squint/joker/pattern cues. Questions to answer are in Pass 01 §6 and Pass 02 §7.
 
 ### NEXT ACTIONS *(in order; tick when done; append anything discovered)*
 
 **A · Carried over from Phase 1 (do alongside Phase 2; none blocks it)**
-- [ ] **A0.** Ask the user to approve `git init` + one commit per phase. *The project has no version control; for a 50-level haul that is the biggest risk.* (Do not init/commit unasked.)
+- [x] **A0.** *(done 2026-11-17: the user chose one commit of everything; made locally as 1570ac9, not pushed. The repo's own history is a917fea, then 1570ac9.)* *The project has no version control; for a 50-level haul that is the biggest risk.* (Do not init/commit unasked.)
 - [ ] **A1.** *(user)* Phone session → answer Pass 01 §6 → send tuned numbers (tuning panel **Copy**) → bake them into `src/tune.js`. Do not wait for it; keep building.
 - [ ] **A2.** Strengthen **Level 4**'s aha (rainbow-joker reads weakly: `p_luck 0.59`, waived). Redesign via search so a real trap exists without a waiver, or fold the joker lesson into a better level in the same slot.
-- [ ] **A3.** Decide whether Level 10's **Tidy** star should be attainable (nudge hint) or stay unpromised (currently unpromised).
+- [x] **A3.** *(decided 2026-11-17: Level 10's Tidy stays unpromised.)*
 - [ ] **A4.** Wire stored-but-unused features: show the level **caption** as a handwritten postcard card on the Wake; `settings.leftHand` (mirror the finger offset) and haptic intensity UI; hint tier 2 ("show me why"); "skip with a postcard".
 - [ ] **A5.** PWA: icons (manifest has none), optional service worker (needs https/localhost).
 - [ ] **A6.** iOS silent-switch audio keep-alive trick (documented in chapter 04 §10.4, **not implemented**).
@@ -41,13 +42,21 @@ Never mass-produce levels: every level gets an identity card (§5), passes the v
 - [ ] **A9.** Turn `tools/search-level.js` (hard-coded `l6`/`l10` templates) into a template-per-mechanic tool; Phase 2 needs it.
 
 **B · Phase 2 v2 (levels 11–20)**, per `docs/passes/pass-02-levels-11-20.md` §5; each step = toy/engine + rules + solver/validator + bot + art + audio + level + screenshots; keep everything green:
-- [ ] **B0 Feel layer** (touches Act 1 too): dynamic thunk · material worlds · stereo · cables-as-strings (strum/pluck) · tension creak · plug lean + neighbour wobble · cable-contact tock · per-device wake voices.
-- [ ] B1 **L11 Slide** (rail; kinematic strips; drill; steel world) · B2 **L12 Fairy Lights** (hoops, route-through) · B3 **L13 Stereo** (shared Y-plug) · B4 **L14 Tape It** (mend gesture) · B5 **L15 Pegboard Wall** (daisy chain).
-- [ ] B6 **L16 Puddle** (dryer + wet) · B7 **L17 Lazy Susan** (turntable + winding) · B8 **L18 Egg Timer** (timers) · B9 **L19 Midnight Snack** (dark, radar, quiet hands, sleeping cat) · B10 **L20 Breakfast for Twelve** (boss, agents, sunrise).
-- [ ] B11 **Hooks:** postcards (captions on the Wake + an album), the **House Map** level select, cable **skins** and **chime sets** unlocked by stars/secrets.
-- [ ] B12 Phase 2 acceptance gate (§7) + as-built notes → **B13 write Pass 03** (Toy Room & Studio).
+- [x] **B0 Feel layer** (touches Act 1 too): dynamic thunk · material worlds · stereo · cables-as-strings (strum/pluck) · tension creak · plug lean + neighbour wobble · cable-contact tock · per-device wake voices.
+- [x] **B1 L11 Slide** (built, validated, bot-solved, probes green)
+- [x] B2 **L12 Fairy Lights** · [x] B3 **L13 Stereo** (Y-plug, garage party) · [x] B4 **L14 Tape It** (mend scribble) · [x] B5 **L15 Pegboard Wall** (daisy chain, the wall's tool outlines light up).
+- [x] B6 **L16 Puddle** (dryer + wet socket, *the helper must leave*) · [x] B7 **L17 Trip** (breaker load; kitchen dinner rush; *Lazy Susan moved to Act 3's seeds*) · [x] B8 **L18 Egg Timer** (timer sockets, 0.8 s grace, tap-the-egg-timer, rising phrase; `tools/playtest/timer.mjs`) (timers) · [x] B9 **L19 Midnight Snack** (dark lantern plug, radar hum, quiet hands, Biscuit who sits on a socket until petted; `tools/playtest/dark.mjs`) · [x] B10 **L20 Breakfast for Twelve** (boss: dry → feed → mend → load, a chain that draws through the first strip, sunrise + toast + Biscuit + a far train whistle; built as a recipe, one legal arrangement, bot 3 stars).
+- [x] B11 **Hooks:** postcards (captions + album thumbnails), the **House Map** level select (a floor per act, lit windows, gold frames for secrets), six cable **skins** and five **chime sets** earned by stars/secrets/acts (`src/meta.js`; `tools/playtest/meta.mjs`).
+- [x] B12 Phase 2 acceptance gate (§7): green, with one headless waiver and the phone session still owed (details in `docs/passes/pass-02-levels-11-20.md` §8).
+- [x] **B13 Pass 03 v2 written** (`docs/passes/pass-03-levels-21-30.md`: debrief, the list *changed* after the distinctness test, ten complete identity cards, build order, phone questions, open water).
 
-**C–F · Phases 3, 4, 5, long tail:** repeat the Phase Loop (§4) per act using the seeds in §6.
+**C · Phase 3 (levels 21–30)**, per `docs/passes/pass-03-levels-21-30.md` §4; each step = toy/engine + rules + validator + bot (+ a probe script) + art + audio + level + screenshots, everything green before the next:
+- [x] C0 Feel additions: the draw sound/haptic, the toy world (floorboards + felt), the snail's voice, Act 3 root (+3) and its `G.Acts` entry. *(The wooden block material and the sequencer's beat scheduler come with C5 and C7.)*
+- [x] C1 **Carried strip → L21 Snail Mail** (draw its road; the tether parks the snail on the deck; `tools/playtest/carry.mjs`) · [x] C2 **herding cat → L22 Laser Pointer** (a spot of light herds Biscuit off the socket; `tools/playtest/cat.mjs`) · [x] C3 **train, points, lever, dynamo → L23 All Aboard** (red track shows what the cables cannot follow; `tools/playtest/track.mjs`) · [x] C4 **wind-up toy (aim dial + key to wind + ghost road, bonks and a run-down) → L24 Wind-Up Parade** (`tools/playtest/wind.mjs` 33 checks; **`hints.mjs`** audits the bulb on every level: it found that `points`/`lever`/`wind`/`wait` hints had no presentation) · [x] C5 **pushable blocks (heavy, marimba bars, a toy box, outlets under the toys) → L25 Block Party** (`tools/playtest/blocks.mjs`)
+- [x] C6 **chain: the beat runs left to right along a strip (listeners, feuds, bubbles, a count-in) → L26 Order Up** (`tools/playtest/chain.mjs`) · [x] C7 **sequencer strip → L27 First Four Notes, L29 On the Beat** (`tools/playtest/seq.mjs`, `groove.mjs`) · [x] C8 **shakes + twist-lock → L28 Bass Drop** (`tools/playtest/bass.mjs`, `bot.mjs 28`) · [x] C9 **boss → L30 Jam Session** (the lullaby finale) (`tools/playtest/boss.mjs`, `bot.mjs 30`)
+- [x] C10 **Phase 3 acceptance gate** (2026-11-16: bot 1–30, the probe suite, viewports, audio render, hints; waived: `feel.mjs` check 10, headless, to re-run) + as-built notes (Pass 03 §7) + rewards (the lullaby box and the crayon cable, both earned by Act 3; the House Map's third floor is up) → **Pass 04 written** (Act 4: the Space Station, the Wall). Next: D0.
+
+**D · Phase 4 (Pass 04, `docs/passes/pass-04-levels-31-40.md` §6; the gate result is §9 D11, not passed while 36 is missing):** **D8 ✓** Lanes (Level 38), **D9 ✓** Patch Panel (Level 39, built on the Level 15 cord), **D10 ✓** The Server Hall (Level 40, a reduced composition: no trolley, no fans clock), **D11** the gate: the probe suite and the full bot ran green before Level 36 (Pass 04 §9 D11); re-run after 36. Earlier steps: **D0 ✓** the zero-g motion module (`float.mjs`); **D1 ✓** Level 31 Float; **D2 ✓** Level 32 Docking (`dock.mjs`); **D3 ✓** Level 33 Stretch, the sling and its arc (`sling.mjs`); **D4 ✓** Level 34 Magnet Moon, the clips and the peel (`magnet.mjs`); **D5 ✓** Level 35 Orbital Repair, the set piece (the cascade and the Earth rising); **D6 ✓** Hang Time (Level 36, the cutaway inset you chose; the inset is a schematic of heights, Pass 04 §9 D6); **D7 ✓** Level 37 Swing & Plug, the pendulum (`swing.mjs`, `golden37.mjs`; the golden needs two fingers; Tidy unpromised, a settle flake recorded in Pass 04 §9); → **D8 ✓** Lanes (Level 38) → D9 Patch Panel → D10 The Server Hall (boss) → D11 the Phase 4 gate. **E–F · Phase 5 and the long tail:** repeat the Phase Loop (§4) per act using the seeds in §6.
 
 ### Open decisions that need the user *(everything else I decide and log in `docs/GDD.md`)*
 1. `git init` + per-phase commits (A0).
@@ -201,29 +210,29 @@ Levels 1–10 are built; 11–20 are designed (Pass 02); **21–50 are one-line 
 | 14 | Tape It | **mend** frayed cables/sockets with a limited roll of tape · the scribble-wrap | tenderness; scarcity |
 | 15 | The Pegboard Wall | daisy chain: **power the powerer** · the wave of light | workshop pride; a wall floods warm |
 | 16 | Puddle | a device that **helps another** (the hair dryer dries a wet socket) | curious wonder; cause and effect |
-| 17 | Lazy Susan | **spin** a turntable; the cables **wind** around the hub | mesmerizing spin; a dinner party |
+| 17 | Trip | **balance** the load: a breaker that trips with a choked kettle whistle | slapstick callback to the Power Cut; the kitchen dinner rush |
 | 18 | Egg Timer | plug **on the tick** · filling rings; the kettle as metronome | cozy rhythm breather |
 | 19 | Midnight Snack | the plug is a **flashlight**, sockets **hum**, softness is volume · a sleeping cat | hush and tenderness |
 | 20 | Breakfast for Twelve | boss: layers + Biscuit awake · launched toast · **sunrise** | warm chaos; a train whistle teaser |
-| **Act 3 · Toy Room (seeds)** | | | |
-| 21 | Snail Mail | a snail carrying a strip on its shell | patience; the funniest slow solve |
-| 22 | All Aboard | a toy train with a socket wagon, a signal lever | nostalgic clatter; the whistle from level 20 |
-| 23 | Taxi! | a robot vacuum carrying a strip; docks each lap | a dutiful little robot; its dotted path |
-| 24 | Wind-Up Parade | tin toys that carry plugs; a *twist* gesture | clattering joy; a new verb |
-| 25 | Biscuit's Sunbeam | the cat as a full mechanic; a drifting sunbeam | domestic comedy; time of day made visible |
-| **Act 3 · Studio (seeds)** | | | |
-| 26 | Order Up | boot-order gate; chalk dependency arrows | backstage hush |
-| 27 | First Four Notes | Simon melody by plug order | music-box purity: devices as instruments |
-| 28 | Bass Drop | speaker bass shakes plugs loose | club tremor; ripples on the mat |
-| 29 | On the Beat | pulsing sockets; optional on-the-beat plugging | groove; sockets as drum pads |
-| 30 | Jam Session *(boss)* | melody + belt + bass; the band wakes | concert triumph; every device applauds |
-| **Act 4 · Space Station (seeds)** | | | |
+| **Act 3 · Toy Room (designed: Pass 03 v2)** | | | |
+| 21 | Snail Mail | **draw** the road a snail carries a strip along (a new hand verb); the silver trail | patience; the funniest slow solve |
+| 22 | Laser Pointer | **herd** Biscuit with a spot of sunlight so she leaves the socket she sits on | mischief; the cat as a full mechanic |
+| 23 | All Aboard | **route** a toy train (points + a signal lever); the wagon carries the strip | nostalgic clatter; the whistle from level 20 |
+| 24 | Wind-Up Parade | **wind** tin toys (a *twist*) that carry plugs across the rug | clattering joy; a new verb |
+| 25 | Block Party | **push** alphabet blocks (a Sokoban blend): they hide sockets and block cables | childlike pride; wooden marimba clacks |
+| **Act 3 · Studio** | | | |
+| 26 | Order Up | **read** chalk dependency arrows: a device wakes after the one it follows | backstage hush |
+| 27 | First Four Notes | the **step-sequencer strip** (each socket is a beat): rebuild the tune you heard | music-box purity: devices as instruments |
+| 28 | Bass Drop | the bass shakes plugs out; a quarter-turn **twist-lock** holds them | club tremor; ripples on the floor |
+| 29 | On the Beat | the sequencer's **accents**: loud devices on the downbeats; the groove tells you | groove; sockets as drum pads |
+| 30 | Jam Session *(boss)* | clock → riff → lock the bass → accent the groove; the band plays the finale (a lullaby) | concert triumph; every device applauds |
+| **Act 4 · Space Station (designed: Pass 04, v1)** | | | |
 | 31 | Float | zero-g toy: flick plugs and they drift | serene weightlessness |
 | 32 | Docking | low-speed capture; magnet rings | precision calm |
 | 33 | Stretch | rubber cables that sling plugs | playful twang; arc previews |
 | 34 | Magnet Moon | metal rails, decoy paperclips, peel | curious science |
 | 35 | Orbital Repair *(set piece)* | eight devices; Earth rises as the station wakes | awe; the biggest cascade yet |
-| **Act 4 · The Wall (seeds)** | | | |
+| **Act 4 · The Wall (designed: Pass 04, v1)** | | | |
 | 36 | Hang Time | gravity returns: cables sag (side-on view) | relief of weight; a total camera change |
 | 37 | Swing & Plug | pendulum release timing | trapeze joy |
 | 38 | Lanes | cable lanes in a server rack | cable-management ASMR |

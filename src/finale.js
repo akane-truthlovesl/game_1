@@ -354,5 +354,248 @@
     Art.cat(ctx, c.x, c.y, c);
   };
 
+
+  /* ---------------------------------------------------------------- the Level 20 stinger: sunrise, toast, Biscuit, a train far away */
+  function SunriseFinale(room) {
+    this.room = room;
+    this.t = 0;
+    this.revealed = false;
+    this.revealT = -1;
+    this.x = 0;
+    this.y = 0;
+    this.sun = 0; // 0..1: how far the morning has come up (it grows with the room's waking, then finishes with the finale)
+    this.toasts = [];
+    this.motes = 0;
+    this.rt = { bloom: 0 };
+    this.cat = { vis: false, x: 410, y: 120, rot: 0, sc: 1, t: 0, breath: 0, tail: 0, curl: 0.2, eyes: 0, pose: 'hidden', paw: null, ears: 0 };
+  }
+  G.SunriseFinale = SunriseFinale;
+  SunriseFinale.prototype.hit = function () {
+    return false;
+  };
+  SunriseFinale.prototype.nudge = function () {};
+
+  // the window's light, as lights for the light map
+  SunriseFinale.prototype.lights = function () {
+    if (this.sun < 0.02) return [];
+    return [{ x: -10 + this.room.offX, y: 20, r: 560 * (0.35 + 0.65 * this.sun), i: 0.9 * this.sun, col: '#ffd7a0' }];
+  };
+
+  SunriseFinale.prototype.reveal = function () {
+    if (this.revealed) return;
+    this.revealed = true;
+    this.revealT = 0;
+    const room = this.room;
+    room.later(0.8, () => this.launchToast());
+    room.later(3.9, () => this.catHop());
+    room.later(8.4, () => this.whistle());
+  };
+
+  // Toasty fires a slice at each of the other devices
+  SunriseFinale.prototype.launchToast = function () {
+    const room = this.room,
+      L = room.L;
+    const src = L.devicesById.toasty;
+    if (!src) return;
+    const ids = ['dot', 'lux', 'static', 'kettle'];
+    let n = 0;
+    ids.forEach((id, i) => {
+      const d = L.devicesById[id];
+      if (!d) return;
+      room.later(i * 0.42, () => {
+        this.toasts.push({ fx: src.x, fy: src.y - 8, tx: d.x + (i % 2 ? 7 : -7), ty: d.y - Math.min(28, d.meta.h * 0.22), x: src.x, y: src.y - 8, t: 0, dur: 0.82, landed: false, rot: 0, spin: (i % 2 ? 1 : -1) * (4 + i), dev: d, i });
+        room.devRT.toasty.hopS.kick(2.4);
+        room.devRT.toasty.delight = 0.6;
+        A().sfx.pop();
+        if (n++ === 0) Fx.caption('pwing!', src.x, src.y - 40, '#fff1c8');
+      });
+    });
+  };
+
+  SunriseFinale.prototype.catHop = function () {
+    const c = this.cat,
+      src = this.room.L.devicesById.toasty;
+    c.vis = true;
+    c.pose = 'hop';
+    c.t = 0;
+    c.from = { x: 410, y: 118 };
+    c.to = { x: src.x + 2, y: src.y - 6 };
+    c.dur = 1.0;
+    c.landed = false;
+  };
+
+  // a steam whistle, far away: two long falling notes under a low-pass haze, then its echo
+  SunriseFinale.prototype.whistle = function () {
+    A().sfx.whistleFar && A().sfx.whistleFar();
+    Fx.caption('toot . . . toooot', 250, 74, 'rgba(255,255,255,0.8)');
+  };
+
+  SunriseFinale.prototype.update = function (dt) {
+    this.t += dt;
+    if (this.revealT >= 0) this.revealT += dt;
+    const room = this.room;
+    const target = Math.min(1, room.awakeShown || 0) * 0.62 + (this.revealed ? 0.38 : 0);
+    this.sun = U.damp(this.sun, target, 0.45, dt);
+    // motes drifting in the beam
+    if (this.sun > 0.45) {
+      this.motes -= dt;
+      if (this.motes <= 0) {
+        this.motes = 0.16;
+        const x = 20 + Math.random() * 200,
+          y = 70 + Math.random() * 300;
+        Fx.spawn(Fx.KIND.DUST, x, y, 6 + Math.random() * 8, 4 + Math.random() * 6, 2.4, 1.2, '#fff1cf');
+      }
+    }
+    for (const q of this.toasts) {
+      if (q.landed) {
+        q.t += dt;
+        continue;
+      }
+      q.t += dt;
+      const k = Math.min(1, q.t / q.dur),
+        e = U.ease.outQuad(k);
+      q.x = U.lerp(q.fx, q.tx, e);
+      q.y = U.lerp(q.fy, q.ty, e) - Math.sin(Math.PI * k) * 74;
+      q.rot = q.spin * k;
+      if (k >= 1) {
+        q.landed = true;
+        q.t = 0;
+        q.rot = 0.12 * (q.i % 2 ? 1 : -1);
+        A().sfx.bip(q.i + 1);
+        A().sfx.tick();
+        Fx.sparkle(q.tx, q.ty, '#ffe3a8', 6);
+        const rt = room.devRT[q.dev.id];
+        if (rt) {
+          rt.hopS.kick(1.5);
+          rt.delight = 0.5;
+        }
+      }
+    }
+    const c = this.cat;
+    if (!c.vis) return;
+    c.t += dt;
+    c.breath += dt;
+    c.tail += dt;
+    if (c.pose === 'hop') {
+      const k = Math.min(1, c.t / c.dur),
+        e = U.ease.outQuad(k);
+      c.x = U.lerp(c.from.x, c.to.x, e);
+      c.y = U.lerp(c.from.y, c.to.y, e) - Math.sin(Math.PI * k) * 60;
+      c.sc = 1 + 0.22 * Math.sin(Math.PI * k);
+      c.rot = (1 - k) * 0.8 - 0.3;
+      c.curl = 0.1;
+      if (k >= 1 && !c.landed) {
+        c.landed = true;
+        c.pose = 'curl';
+        c.t = 0;
+        c.sc = 1;
+        A().sfx.thud(1);
+        H().pulse('seatFat');
+        Fx.kick(0, 1.4);
+        Fx.sparkle(c.x, c.y, '#fff6d8', 8);
+        const tt = room.devRT.toasty;
+        if (tt) {
+          tt.hopS.kick(2.6);
+          tt.wince = 0.4;
+        }
+        Fx.caption('mrrp', c.x + 28, c.y - 32, '#fff7dc');
+        A().sfx.cat();
+      }
+    } else if (c.pose === 'curl') {
+      c.curl = U.damp(c.curl, 1, 0.3, dt);
+      c.eyes = U.damp(c.eyes, 1, 0.3, dt);
+      c.rot = U.damp(c.rot, 0.15, 0.4, dt);
+      if (c.t > 0.5 && !c.purred) {
+        c.purred = true;
+        A().sfx.purr(2.8);
+        if (H().enabled && navigator.vibrate) navigator.vibrate([28, 24, 28, 24, 28, 24, 28, 24, 28, 24, 28]);
+      }
+    }
+  };
+
+  SunriseFinale.prototype.drawUnder = function () {};
+  SunriseFinale.prototype.drawCloth = function () {};
+
+  // the window's light on the floor (four panes, skewed), the toast on its way or landed, and Biscuit
+  SunriseFinale.prototype.drawCat = function (ctx, t) {
+    const sun = this.sun;
+    if (sun > 0.02) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const O = { x: -30, y: 52 },
+        Uv = { x: 200, y: -26 },
+        Vv = { x: 150, y: 400 };
+      const P = (u, v) => ({ x: O.x + Uv.x * u + Vv.x * v, y: O.y + Uv.y * u + Vv.y * v });
+      for (let i = 0; i < 2; i++)
+        for (let j = 0; j < 2; j++) {
+          const u0 = i * 0.5 + 0.03,
+            u1 = i * 0.5 + 0.47,
+            v0 = j * 0.5 + 0.03,
+            v1 = j * 0.5 + 0.47;
+          const a = P(u0, v0),
+            b = P(u1, v0),
+            c = P(u1, v1),
+            d = P(u0, v1);
+          const g = ctx.createLinearGradient(a.x, a.y, d.x, d.y);
+          g.addColorStop(0, 'rgba(255,226,170,' + 0.24 * sun + ')');
+          g.addColorStop(1, 'rgba(255,226,170,' + 0.05 * sun + ')');
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.lineTo(c.x, c.y);
+          ctx.lineTo(d.x, d.y);
+          ctx.closePath();
+          ctx.fill();
+        }
+      ctx.restore();
+    }
+    // toast
+    for (const q of this.toasts) {
+      const wob = q.landed ? Math.sin(q.t * 7) * 0.05 * Math.max(0, 1 - q.t) : 0;
+      ctx.save();
+      ctx.translate(q.x, q.y);
+      ctx.rotate(q.rot + wob);
+      const sq = q.landed ? 1 + 0.12 * Math.max(0, 1 - q.t * 4) : 1;
+      ctx.scale(sq, 2 - sq);
+      ctx.beginPath();
+      ctx.moveTo(-9, 9);
+      ctx.lineTo(-9, -3);
+      ctx.bezierCurveTo(-13, -6, -11, -12, -5, -10);
+      ctx.bezierCurveTo(-2, -13, 2, -13, 5, -10);
+      ctx.bezierCurveTo(11, -12, 13, -6, 9, -3);
+      ctx.lineTo(9, 9);
+      ctx.closePath();
+      ctx.fillStyle = '#c98a45';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-6.5, 7);
+      ctx.lineTo(-6.5, -2);
+      ctx.bezierCurveTo(-9, -5, -8, -9, -4, -7.5);
+      ctx.bezierCurveTo(-1.5, -10, 1.5, -10, 4, -7.5);
+      ctx.bezierCurveTo(8, -9, 9, -5, 6.5, -2);
+      ctx.lineTo(6.5, 7);
+      ctx.closePath();
+      ctx.fillStyle = '#f3d49a';
+      ctx.fill();
+      // a face on the slice: it is delighted to be breakfast
+      ctx.fillStyle = '#6a4220';
+      ctx.fillRect(-3.4, -1.4, 1.5, 1.5);
+      ctx.fillRect(1.9, -1.4, 1.5, 1.5);
+      ctx.beginPath();
+      ctx.arc(0, 2.4, 2.4, 0.15 * Math.PI, 0.85 * Math.PI);
+      ctx.strokeStyle = '#6a4220';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+    const c = this.cat;
+    if (!c.vis) return;
+    ctx.save();
+    Art.shadow(ctx, c.x, c.y + 6, 54, 44, 22, 0, c.pose === 'hop' ? 0.9 : 0.1, 0.4);
+    ctx.restore();
+    Art.cat(ctx, c.x, c.y, c);
+  };
+
   Art.finale = RexFinale;
 })();

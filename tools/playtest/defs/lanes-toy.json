@@ -1,0 +1,169 @@
+{
+ "id": 99,
+ "act": 4,
+ "name": "Lanes (toy, no goal)",
+ "cls": "puzzle",
+ "dawn": 0.5,
+ "world": "station",
+ "par": 3,
+ "tidy": false,
+ "waive": [
+  "luck"
+ ],
+ "lanes": true,
+ "strips": [
+  {
+   "id": "R",
+   "x": 180,
+   "y": 230,
+   "slots": 3,
+   "pitch": 70,
+   "angle": 0,
+   "sockets": [
+    {
+     "key": "coral"
+    },
+    {
+     "key": "amber"
+    },
+    {
+     "key": "sky"
+    }
+   ]
+  }
+ ],
+ "gates": [
+  {
+   "id": "c1",
+   "x": 110,
+   "y": 330,
+   "rot": 0,
+   "gap": 44,
+   "key": "coral"
+  },
+  {
+   "id": "c2",
+   "x": 110,
+   "y": 380,
+   "rot": 0,
+   "gap": 44,
+   "key": "coral"
+  },
+  {
+   "id": "c3",
+   "x": 110,
+   "y": 430,
+   "rot": 0,
+   "gap": 44,
+   "key": "coral"
+  },
+  {
+   "id": "a1",
+   "x": 180,
+   "y": 330,
+   "rot": 0,
+   "gap": 44,
+   "key": "amber"
+  },
+  {
+   "id": "a2",
+   "x": 180,
+   "y": 380,
+   "rot": 0,
+   "gap": 44,
+   "key": "amber"
+  },
+  {
+   "id": "a3",
+   "x": 180,
+   "y": 430,
+   "rot": 0,
+   "gap": 44,
+   "key": "amber"
+  },
+  {
+   "id": "s1",
+   "x": 250,
+   "y": 330,
+   "rot": 0,
+   "gap": 44,
+   "key": "sky"
+  },
+  {
+   "id": "s2",
+   "x": 250,
+   "y": 380,
+   "rot": 0,
+   "gap": 44,
+   "key": "sky"
+  },
+  {
+   "id": "s3",
+   "x": 250,
+   "y": 430,
+   "rot": 0,
+   "gap": 44,
+   "key": "sky"
+  }
+ ],
+ "devices": [
+  {
+   "id": "squeak",
+   "label": "Squeak",
+   "type": "console",
+   "x": 300,
+   "y": 570,
+   "color": "coral",
+   "cable": {
+    "len": 495,
+    "curl": 1
+   },
+   "plug": {
+    "key": "coral"
+   },
+   "rest": {
+    "x": 300,
+    "y": 470
+   }
+  },
+  {
+   "id": "spike",
+   "label": "Spike",
+   "type": "drill",
+   "x": 180,
+   "y": 575,
+   "color": "amber",
+   "cable": {
+    "len": 520,
+    "curl": 1
+   },
+   "plug": {
+    "key": "amber"
+   },
+   "rest": {
+    "x": 180,
+    "y": 500
+   }
+  },
+  {
+   "id": "dot",
+   "label": "Dot",
+   "type": "phone",
+   "x": 60,
+   "y": 570,
+   "color": "sky",
+   "cable": {
+    "len": 495,
+    "curl": 1
+   },
+   "plug": {
+    "key": "sky"
+   },
+   "rest": {
+    "x": 60,
+    "y": 470
+   }
+  }
+ ],
+ "decor": []
+}

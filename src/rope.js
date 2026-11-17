@@ -43,6 +43,9 @@
     this.relaxOn = false;
     this.relaxHold = 0;
     this.fricK = o.fricK || 1; // surface friction scale (steel is slick, felt is grippy)
+    this.dampK = o.dampK || 1; // viscous damping scale: a zero-g station lets a flicked cable drift on (Act 4)
+    this.gravK = o.gravK || 0; // a downward pull (px/s^2) on every free node: the wall, where gravity is back (Act 4, Level 36); 0 everywhere else
+    this.wind = o.wind || null; // a band of air {x0,x1,y0,y1,ax,ay}: a node inside it is pushed by (ax,ay) px/s^2 (Act 5, the fan; null everywhere else)
     this.noRelax = !!o.noRelax; // cables that must keep their route (through hoops) never relax toward a circular arc
     this.hitMax = 0; // biggest obstacle push since last read (the Room turns it into a tock)
     this.vib = null; // a plucked cable's standing wave (visual only): { t, s0, amp }
@@ -109,8 +112,61 @@
     }
   }
   Rope.arcPoints = arcPoints;
+
+  /* a long cable parked near its device does not form a giant loop: it lies in loose S-folds, like a real cord on a bench.
+     len/chord <= FOLD_AT is the usual circular arc; beyond that, a sine meander whose amplitude is solved so that the
+     path is exactly `len` long (resampled to equal segments), tapering to the chord at both ends. */
+  const FOLD_AT = 2.1;
+  function restPoints(rx, ry, px, py, len, n, curl, outX, outY) {
+    const cx = px - rx,
+      cy = py - ry;
+    const c = Math.max(1, Math.hypot(cx, cy));
+    if (len / c <= FOLD_AT) return arcPoints(rx, ry, px, py, len, n, curl, outX, outY);
+    const ux = cx / c,
+      uy = cy / c;
+    const nx = -uy * curl,
+      ny = ux * curl;
+    const waves = Math.max(1.5, Math.round(len / c * 0.55 * 2) / 2); // fewer, broader folds: a loose cord, not a phone spring
+    const K = 240;
+    const xs = new Float64Array(K + 1),
+      ys = new Float64Array(K + 1);
+    const build = (A) => {
+      let L = 0;
+      for (let i = 0; i <= K; i++) {
+        const t = i / K;
+        xs[i] = c * t;
+        ys[i] = A * Math.sin(Math.PI * t) * Math.sin(2 * Math.PI * waves * t);
+        if (i) L += Math.hypot(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+      }
+      return L;
+    };
+    let lo = 0,
+      hi = len;
+    for (let it = 0; it < 48; it++) {
+      const mid = (lo + hi) / 2;
+      if (build(mid) < len) lo = mid;
+      else hi = mid;
+    }
+    build((lo + hi) / 2);
+    // resample at equal arc length
+    const cum = new Float64Array(K + 1);
+    for (let i = 1; i <= K; i++) cum[i] = cum[i - 1] + Math.hypot(xs[i] - xs[i - 1], ys[i] - ys[i - 1]);
+    const tot = cum[K];
+    let j = 1;
+    for (let i = 0; i < n; i++) {
+      const d = (i / (n - 1)) * tot;
+      while (j < K && cum[j] < d) j++;
+      const f = (d - cum[j - 1]) / Math.max(1e-9, cum[j] - cum[j - 1]);
+      const X = xs[j - 1] + (xs[j] - xs[j - 1]) * f,
+        Y = ys[j - 1] + (ys[j] - ys[j - 1]) * f;
+      outX[i] = rx + ux * X + nx * Y;
+      outY[i] = ry + uy * X + ny * Y;
+    }
+  }
+  Rope.restPoints = restPoints;
+  Rope.FOLD_AT = FOLD_AT;
   Rope.prototype.build = function (rx, ry, px, py) {
-    arcPoints(rx, ry, px, py, this.len, this.n, this.curl, this.x, this.y);
+    restPoints(rx, ry, px, py, this.len, this.n, this.curl, this.x, this.y);
     for (let i = 0; i < this.n; i++) {
       this.px[i] = this.x[i];
       this.py[i] = this.y[i];
@@ -192,7 +248,7 @@
       seg = this.seg;
     const pinned = this.mode === 2;
     const fric = T.friction * this.fricK * dt * dt;
-    const vd = Math.max(0, 1 - T.damp * dt);
+    const vd = Math.max(0, 1 - T.damp * this.dampK * dt);
     const stick = T.stiction;
 
     // ---- root ----
@@ -219,7 +275,12 @@
       px[i] = x[i];
       py[i] = y[i];
       x[i] += vx;
-      y[i] += vy;
+      y[i] += vy + this.gravK * dt * dt;
+      const W = this.wind;
+      if (W && x[i] > W.x0 && x[i] < W.x1 && y[i] > W.y0 && y[i] < W.y1) {
+        x[i] += W.ax * dt * dt;
+        y[i] += W.ay * dt * dt;
+      }
     }
 
     // ---- plug handling ----

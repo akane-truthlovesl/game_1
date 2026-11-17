@@ -1,0 +1,20 @@
+{
+ "id": 99,
+ "act": 5,
+ "name": "Ghost (toy, no goal)",
+ "cls": "puzzle",
+ "dawn": 0.5,
+ "world": "lab",
+ "par": 1,
+ "tidy": false,
+ "waive": ["luck"],
+ "ghost": true,
+ "obstacles": [ { "shape": "circle", "x": 180, "y": 350, "r": 22, "tall": true, "art": "mug" } ],
+ "strips": [
+  { "id": "G", "kind": "grommet", "x": 300, "y": 200, "slots": 1, "pitch": 40, "angle": 0, "sockets": [ { "key": "coral" } ] }
+ ],
+ "devices": [
+  { "id": "pip", "label": "Pip", "type": "phone", "x": 60, "y": 540, "color": "coral", "cable": { "len": 500, "curl": 1 }, "plug": { "key": "coral" }, "rest": { "x": 100, "y": 430 } }
+ ],
+ "decor": []
+}

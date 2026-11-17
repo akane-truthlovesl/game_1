@@ -19,6 +19,9 @@
     mint: '#3FD6A6',
     sky: '#4AA3FF',
     violet: '#9B7BFF',
+    rose: '#FF8FB3',
+    lime: '#B6E35A',
+    teal: '#2EC4B6',
     any: '#E9E4D8',
   };
   Art.CREAM = '#EFE8D8';
@@ -375,6 +378,60 @@
         ctx.globalCompositeOperation = 'source-over';
       }
     }
+    // frayed: copper strands and a flickering blue spark; mended: a silver band of tape
+    const fray = rt.fray && rt.fray[sock.id];
+    if (fray) {
+      if (!fray.mended) {
+        ctx.strokeStyle = '#d98a4c';
+        ctx.lineWidth = 1.6;
+        ctx.lineCap = 'round';
+        for (const sx of [-1, 1])
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(sx * 9, -10 + i * 3.4);
+            ctx.quadraticCurveTo(sx * (15 + i * 2), -14 + i * 4 + Math.sin(t * 5 + i) * 1.2, sx * (18 + i * 2.4), -8 + i * 6);
+            ctx.stroke();
+          }
+        if (Math.sin(t * 31 + sock.slot * 7) > 0.35) {
+          ctx.strokeStyle = 'rgba(190,225,255,0.95)';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          let x = -12,
+            y = -2;
+          ctx.moveTo(x, y);
+          for (let k = 0; k < 5; k++) {
+            x += 5;
+            y = -2 + Math.sin(t * 90 + k * 2.3 + sock.slot) * 5;
+            ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+        ctx.fillStyle = 'rgba(20,14,10,0.35)';
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, 0, TAU);
+        ctx.fill();
+      }
+      // tape winding on (fray.prog 0..1) or already on (mended)
+      const pr = fray.mended ? 1 : fray.prog;
+      if (pr > 0.02) {
+        const bh = 8 + 30 * pr;
+        ctx.beginPath();
+        rrect(ctx, -17, sockH / 2 + 3 - bh, 34, bh, 4);
+        ctx.fillStyle = lin(ctx, 0, -bh, 0, bh, [0, '#f1f4f8', 0.5, '#bcc4d0', 1, '#8d97a6']);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(40,50,66,0.45)';
+        ctx.lineWidth = 0.9;
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 1;
+        for (let k = 0; k < bh; k += 5) {
+          ctx.beginPath();
+          ctx.moveTo(-15, sockH / 2 + 3 - bh + k);
+          ctx.lineTo(15, sockH / 2 + 3 - bh + k + 3);
+          ctx.stroke();
+        }
+      }
+    }
     // covered by a brick's overhang
     if (cover > 0) {
       ctx.fillStyle = 'rgba(10,8,6,' + 0.5 * cover + ')';
@@ -403,6 +460,60 @@
       rrect(ctx, -sockW / 2 - 1.5, -sockH / 2 - 1.5, sockW + 3, sockH + 3, 7);
       ctx.stroke();
       ctx.globalCompositeOperation = 'source-over';
+    }
+    // a timed socket wears a ring that fills toward its next opening and glows while it is open
+    const tm = rt.timer && rt.timer[sock.id];
+    if (tm && sock.timer && sock.timer.hatch) {
+      // a docking hatch (Act 4): the notch is the window, and it turns round the ring toward the keyhole at the top; the hatch is open while it covers the keyhole
+      const R = 25,
+        TM = sock.timer,
+        span = TAU * TM.on / TM.period,
+        th = -Math.PI / 2 - (TAU * tm.ph) / TM.period;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(0, 0, R, 0, TAU);
+      ctx.strokeStyle = 'rgba(18,24,38,0.9)';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, R + 2.5, 0, TAU);
+      ctx.strokeStyle = 'rgba(200,212,230,0.45)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, R, th, th + span);
+      ctx.strokeStyle = tm.open ? 'rgba(150,255,190,0.95)' : 'rgba(120,180,255,0.6)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, -R, 3.2, 0, TAU);
+      ctx.fillStyle = tm.open ? '#c8ffd9' : '#2c3650';
+      ctx.fill();
+      if (tm.open) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = rad(ctx, 0, 0, 2, 34, [0, 'rgba(150,255,190,0.3)', 1, 'rgba(150,255,190,0)']);
+        ctx.fillRect(-36, -36, 72, 72);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    } else if (tm) {
+      const R = 25;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(0, 0, R, 0, TAU);
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, R, -Math.PI / 2, -Math.PI / 2 + TAU * Math.max(0.02, Math.min(1, tm.frac)));
+      ctx.strokeStyle = tm.open ? 'rgba(150,255,185,0.95)' : 'rgba(255,214,120,0.8)';
+      ctx.lineWidth = tm.open ? 3.6 : 3;
+      ctx.stroke();
+      if (tm.open || tm.flash > 0.02) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = rad(ctx, 0, 0, 2, 34, [0, 'rgba(150,255,185,' + (0.3 * (tm.open ? 1 : 0) + 0.35 * tm.flash) + ')', 1, 'rgba(150,255,185,0)']);
+        ctx.fillRect(-36, -36, 72, 72);
+        ctx.globalCompositeOperation = 'source-over';
+      }
     }
     // refusal flash on the socket itself
     if (flash > 0.01) {
@@ -515,6 +626,23 @@
     }
     // sockets
     for (let i = 0; i < st.n; i++) drawSocket(ctx, Art.socketAt(st, i), st.sockets[i], rt, hasKeys, t);
+    // a fed strip shows its power as a row of LEDs: dark until its cord is plugged into a live strip, then a wave runs through
+    if (st.fedBy) {
+      for (let i = 0; i < st.n; i++) {
+        const lit = energized ? (rt.wave === undefined ? 1 : Math.max(0, Math.min(1, rt.wave * 1.8 - i * 0.28))) : 0;
+        const lx = Art.socketAt(st, i);
+        ctx.beginPath();
+        ctx.arc(lx, -h / 2 + 8.5, 2.4, 0, TAU);
+        ctx.fillStyle = lit > 0.02 ? '#7ff0a8' : 'rgba(60,50,40,0.45)';
+        ctx.fill();
+        if (lit > 0.02) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = rad(ctx, lx, -h / 2 + 8.5, 1, 11 + 5 * (1 - lit), [0, 'rgba(120,255,170,' + 0.8 * lit + ')', 1, 'rgba(120,255,170,0)']);
+          ctx.fillRect(lx - 16, -h / 2 - 8, 32, 32);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+      }
+    }
     // switch
     if (st.hasSwitch) {
       const xs = Rules.switchX(st);
@@ -561,11 +689,39 @@
       }
     }
     if (st.rail && Art.railGrip) Art.railGrip(ctx, st, rt, t, x0, x1, h);
+    // a capped strip wears a load meter: one segment per bolt it can carry
+    if (st.cap) {
+      const n = st.cap,
+        load = rt.load || 0,
+        pulse = rt.loadPulse || 0;
+      const sw = 11,
+        gap = 3,
+        total = n * sw + (n - 1) * gap;
+      const flick = pulse > 0.5 ? 0.5 + 0.5 * Math.sin(t * 28) : 1;
+      for (let i = 0; i < n; i++) {
+        const x = -total / 2 + i * (sw + gap);
+        const on = i < load;
+        const over = load > n && on;
+        ctx.beginPath();
+        rrect(ctx, x, -h / 2 - 10, sw, 5, 2);
+        ctx.fillStyle = rt.tripped ? 'rgba(40,30,30,0.5)' : on ? (load >= n ? '#ff6a4d' : load >= n - 1 ? '#ffc94d' : '#6ee7a0') : 'rgba(60,52,44,0.38)';
+        ctx.globalAlpha = on ? flick : 1;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        if (on && !rt.tripped) {
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.fillStyle = rad(ctx, x + sw / 2, -h / 2 - 7.5, 1, 11, [0, 'rgba(255,200,120,' + 0.35 * flick + ')', 1, 'rgba(255,200,120,0)']);
+          ctx.fillRect(x - 6, -h / 2 - 18, sw + 12, 22);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+      }
+    }
     ctx.restore();
   };
 
   Art.stripUnder = function (ctx, st, rt, t) {
     if (st.rail && Art.railUnder) return Art.railUnder(ctx, st, rt, t);
+    if (st.carrier && st.carrier.mode !== 'pendulum' && Art.carriedUnder) return Art.carriedUnder(ctx, st, rt, t); // a pendulum hangs from its pivot (mech-pendulum.js): no cord
     const b = Rules.stripBounds(st);
     const cx = (b[0] + b[1]) / 2,
       w = b[1] - b[0];
@@ -575,7 +731,7 @@
       Art.shadow(ctx, st.x, st.y, 46, 46, 23, 0, 0.1, 0.4);
       return;
     }
-    stripCable(ctx, st, b[0] + 6, b[1] - 6 - (st.hasSwitch ? 0 : 0));
+    if (!st.fedBy && !(st.carrier && st.carrier.mode === 'pendulum')) stripCable(ctx, st, b[0] + 6, b[1] - 6 - (st.hasSwitch ? 0 : 0)); // a pendulum hangs from its pivot: no mains lead
     Art.shadow(ctx, st.x + cx * ca, st.y + cx * sa, w, 56, 17, st.angle, 0.12, 0.5);
   };
 
@@ -620,6 +776,21 @@
     rrect(ctx, -bw / 2, -bh / 2, bw, bh, fat ? 9 : 6.5);
     ctx.fillStyle = lin(ctx, -bw / 2, -bh / 2, bw / 2, bh / 2, [0, U.shade(col, 0.2), 0.55, col, 1, U.shade(col, -0.22)]);
     ctx.fill();
+    if (p.keyB) {
+      // a Y-plug: the right half takes the second cable's colour
+      const colB = Art.KEYCOL[p.keyB] || '#ddd';
+      ctx.save();
+      ctx.beginPath();
+      rrect(ctx, -bw / 2, -bh / 2, bw, bh, fat ? 9 : 6.5);
+      ctx.clip();
+      ctx.beginPath();
+      ctx.rect(0, -bh / 2 - 2, bw / 2 + 2, bh + 4);
+      ctx.fillStyle = lin(ctx, -bw / 2, -bh / 2, bw / 2, bh / 2, [0, U.shade(colB, 0.2), 0.55, colB, 1, U.shade(colB, -0.22)]);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.35)';
+      ctx.fillRect(-0.6, -bh / 2, 1.2, bh);
+      ctx.restore();
+    }
     // rim light (upper-left) and under-edge
     ctx.beginPath();
     rrect(ctx, -bw / 2 + 0.7, -bh / 2 + 0.7, bw - 1.4, bh - 1.4, fat ? 8.5 : 6);
@@ -672,6 +843,24 @@
   };
 
   /* ---------------------------------------------------------------- cable */
+  // earned cosmetic skins (see meta.js): they change the weave and the pluck, never the colour code
+  Art.skin = 'braid';
+  Art.SKINW = { ribbon: 1.3, rope: 1.1, beads: 1.12, neon: 0.95, crayon: 1.15 };
+  // a little loop of cable for the settings sheet: draws `skin` in `col` into the box w x h at the origin
+  Art.cableSample = function (ctx, w, h, skin, col) {
+    const n = 22,
+      x = new Float64Array(n),
+      y = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      const u = i / (n - 1);
+      x[i] = 8 + u * (w - 16);
+      y[i] = h / 2 + Math.sin(u * Math.PI * 2.2 + 0.4) * (h * 0.26);
+    }
+    const prev = Art.skin;
+    Art.skin = skin;
+    Art.cable(ctx, { n, x, y, len: w, vib: 0 }, col, { cheap: false });
+    Art.skin = prev;
+  };
   Art.cable = function (ctx, rope, col, o) {
     o = o || {};
     const n = rope.n;
@@ -698,7 +887,8 @@
     }
     const keyed = o.key !== undefined && o.key !== 'any';
     const base = col;
-    const r = T.cableR * (o.thin ? 0.85 : 1) * (1 - 0.06 * (o.strain || 0));
+    const sk = Art.skin || 'braid';
+    const r = T.cableR * (o.thin ? 0.85 : 1) * (1 - 0.06 * (o.strain || 0)) * (Art.SKINW[sk] || 1);
     const path = new Path2D();
     path.moveTo(x[0], y[0]);
     for (let i = 1; i < n - 1; i++) path.quadraticCurveTo(x[i], y[i], (x[i] + x[i + 1]) / 2, (y[i] + y[i + 1]) / 2);
@@ -720,31 +910,92 @@
     ctx.stroke(path);
     ctx.restore();
     // underside, body
-    ctx.strokeStyle = U.shade(base, -0.32);
+    ctx.strokeStyle = U.shade(base, sk === 'neon' ? -0.72 : -0.32);
     ctx.lineWidth = r * 2 + 0.6;
     ctx.stroke(path);
-    ctx.strokeStyle = base;
+    ctx.strokeStyle = sk === 'neon' ? U.shade(base, -0.5) : sk === 'licorice' ? U.shade(base, -0.12) : base;
     ctx.lineWidth = r * 1.75;
     ctx.stroke(path);
-    // ribbing: butt-capped dashes read as bands across the cable and travel with the material
+    // texture: each skin has its own weave. Butt-capped dashes read as bands across the cable and travel with the material.
     ctx.lineCap = 'butt';
-    ctx.setLineDash([1.5, 2.6]);
-    ctx.lineDashOffset = 0;
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-    ctx.lineWidth = r * 1.75;
-    ctx.stroke(path);
-    if (!o.cheap) {
-      ctx.lineDashOffset = -2.05;
-      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+    if (sk === 'rope') {
+      // a chunky twist: bold bands, a lighter band between
+      ctx.setLineDash([3.6, 3]);
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+      ctx.lineWidth = r * 1.75;
       ctx.stroke(path);
+      if (!o.cheap) {
+        ctx.lineDashOffset = -3.3;
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.stroke(path);
+      }
+    } else if (sk === 'licorice') {
+      // candy stripes on a glossy tube
+      ctx.setLineDash([6.5, 6.5]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.46)';
+      ctx.lineWidth = r * 1.75;
+      ctx.stroke(path);
+    } else if (sk === 'ribbon') {
+      // satin: a soft lighter band down the middle, a darker hem on each side
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = r * 1.1;
+      ctx.stroke(path);
+    } else if (sk === 'neon') {
+      // a dark tube with a hot core and a halo
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = U.mix(base, '#ffffff', 0.5);
+      ctx.lineWidth = r * 0.85;
+      ctx.stroke(path);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = U.rgba(base, 0.2);
+      ctx.lineWidth = r * 3.2;
+      ctx.stroke(path);
+      ctx.globalCompositeOperation = 'source-over';
+    } else if (sk === 'beads') {
+      // a bead chain: dark rims, bright faces
+      ctx.lineCap = 'round';
+      ctx.setLineDash([0.1, 4.3]);
+      ctx.strokeStyle = U.shade(base, -0.42);
+      ctx.lineWidth = r * 2.05;
+      ctx.stroke(path);
+      ctx.strokeStyle = U.mix(base, '#ffffff', 0.18);
+      ctx.lineWidth = r * 1.55;
+      ctx.stroke(path);
+    } else if (sk === 'crayon') {
+      // a crayon cable (Act 3's reward): a matte waxy body with short scribbled marks, a lighter stroke and a darker one, no gloss
+      ctx.lineCap = 'round';
+      ctx.setLineDash([2.4, 1.4, 0.9, 2.8]);
+      ctx.strokeStyle = U.mix(base, '#ffffff', 0.24);
+      ctx.lineWidth = r * 1.3;
+      ctx.stroke(path);
+      if (!o.cheap) {
+        ctx.lineDashOffset = -2.6;
+        ctx.strokeStyle = U.shade(base, -0.22);
+        ctx.lineWidth = r * 1.05;
+        ctx.stroke(path);
+      }
+    } else {
+      // braid (the default): fine ribbing
+      ctx.setLineDash([1.5, 2.6]);
+      ctx.lineDashOffset = 0;
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.lineWidth = r * 1.75;
+      ctx.stroke(path);
+      if (!o.cheap) {
+        ctx.lineDashOffset = -2.05;
+        ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+        ctx.stroke(path);
+      }
     }
     ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
     ctx.lineCap = 'round';
-    // highlight toward the light
+    // highlight toward the light (a glossier skin wears a broader sheen)
     ctx.save();
     ctx.translate(-0.7, -0.9);
-    ctx.strokeStyle = 'rgba(255,255,255,' + (0.3 + 0.35 * (o.strain || 0)) + ')';
-    ctx.lineWidth = r * 0.5;
+    ctx.strokeStyle = 'rgba(255,255,255,' + (0.3 + 0.35 * (o.strain || 0) + (sk === 'licorice' ? 0.2 : 0)) + ')';
+    ctx.lineWidth = r * (sk === 'licorice' ? 0.7 : sk === 'ribbon' ? 0.85 : sk === 'neon' ? 0.2 : sk === 'beads' ? 0.35 : sk === 'crayon' ? 0.22 : 0.5);
     ctx.stroke(path);
     ctx.restore();
     // power pulse

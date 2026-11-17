@@ -1,0 +1,206 @@
+{
+ "id": 99,
+ "act": 3,
+ "name": "Blocks (toy)",
+ "cls": "puzzle",
+ "dawn": 0.5,
+ "world": "toy",
+ "par": 7,
+ "tidy": true,
+ "settleCurl": 0.5,
+ "strips": [
+  {
+   "id": "G1",
+   "kind": "grommet",
+   "x": 92,
+   "y": 524,
+   "slots": 1,
+   "pitch": 40,
+   "angle": 0,
+   "sockets": [
+    {
+     "key": "coral"
+    }
+   ]
+  },
+  {
+   "id": "G2",
+   "kind": "grommet",
+   "x": 268,
+   "y": 524,
+   "slots": 1,
+   "pitch": 40,
+   "angle": 0,
+   "sockets": [
+    {
+     "key": "amber"
+    }
+   ]
+  },
+  {
+   "id": "G3",
+   "kind": "grommet",
+   "x": 180,
+   "y": 392,
+   "slots": 1,
+   "pitch": 40,
+   "angle": 0,
+   "sockets": [
+    {
+     "key": "sky"
+    }
+   ]
+  }
+ ],
+ "devices": [
+  {
+   "id": "dot",
+   "type": "phone",
+   "x": 56,
+   "y": 134,
+   "color": "coral",
+   "cable": {
+    "len": 380,
+    "curl": -1
+   },
+   "plug": {
+    "key": "coral"
+   },
+   "rest": {
+    "x": 84,
+    "y": 318
+   }
+  },
+  {
+   "id": "static",
+   "type": "radio",
+   "x": 170,
+   "y": 152,
+   "color": "sky",
+   "cable": {
+    "len": 340,
+    "curl": 1
+   },
+   "plug": {
+    "key": "sky"
+   },
+   "rest": {
+    "x": 170,
+    "y": 312
+   }
+  },
+  {
+   "id": "lux",
+   "type": "lamp",
+   "x": 284,
+   "y": 134,
+   "color": "amber",
+   "cable": {
+    "len": 380,
+    "curl": 1
+   },
+   "plug": {
+    "key": "amber"
+   },
+   "rest": {
+    "x": 256,
+    "y": 318
+   }
+  }
+ ],
+ "blockGrid": {
+  "x0": 26,
+  "y0": 62,
+  "cols": 7,
+  "rows": 12
+ },
+ "blockWalls": [
+  {
+   "x": 56,
+   "y": 134,
+   "w": 50,
+   "h": 92
+  },
+  {
+   "x": 170,
+   "y": 152,
+   "w": 92,
+   "h": 56
+  },
+  {
+   "x": 284,
+   "y": 134,
+   "w": 46,
+   "h": 92
+  },
+  {
+   "x": 84,
+   "y": 318,
+   "w": 36,
+   "h": 36
+  },
+  {
+   "x": 170,
+   "y": 312,
+   "w": 36,
+   "h": 36
+  },
+  {
+   "x": 256,
+   "y": 318,
+   "w": 36,
+   "h": 36
+  }
+ ],
+ "blocks": [
+  {
+   "id": "S",
+   "letter": "S",
+   "c": 1,
+   "r": 7
+  },
+  {
+   "id": "N",
+   "letter": "N",
+   "c": 2,
+   "r": 7
+  },
+  {
+   "id": "U",
+   "letter": "U",
+   "c": 5,
+   "r": 7
+  },
+  {
+   "id": "G",
+   "letter": "G",
+   "c": 1,
+   "r": 8
+  },
+  {
+   "id": "A",
+   "letter": "A",
+   "c": 0,
+   "r": 9
+  },
+  {
+   "id": "B",
+   "letter": "B",
+   "c": 3,
+   "r": 7,
+   "w": 2,
+   "h": 2,
+   "heavy": true,
+   "face": true,
+   "color": 5
+  }
+ ],
+ "secret": {
+  "art": "goldkey",
+  "x": 300,
+  "y": 470,
+  "on": "spelled",
+  "word": "SNUG"
+ },
+ "caption": "toy"
+}

@@ -222,3 +222,17 @@ Competent ideas that were cut from Act 2 because they add a *dimension of the sa
 - **Two-Thumb Tango.** A spring flap held open by one thumb while the other plugs (multi-touch, with a latch assist). *Possible:* an Act 4 level where a device wants a hand on it.
 - **Fridge door.** Free 2-D magnet strips you drag around a vertical surface (a 2-D rail). *Possible:* Act 3.
 - **Fan.** Wind that straightens slack and carries a plug (seeded as L41 Fan Mail).
+- **Lazy Susan** *(cut from Act 2, 2026-11-14)*: a brass turntable with sockets; spin it and the seated cables **wind** around the hub, eating their own length; unwind before you pull. Needs a `simulate`-mode solver (detent × winding numbers) and a strict multi-wrap rope test. A mesmerizing fidget; a strong Act 3 / toy-room candidate.
+
+## Act 3 v2 shelf (from the Pass 03 rewrite, 2026-11-14)
+- **Carousel** *(was the Lazy Susan)*: a toy merry-go-round, sockets in the saddles; spin it (flick, friction, grab to stop) and the cables **wind around the pole**. Needs multi-wrap rope without tunnelling and a `simulate` solver. A candidate Act 4 toy.
+- **Taxi!**: a robot vacuum carrying a strip, summoned by tapping a spot, its dotted plan path shown before it goes, docking every lap. Moved to Act 4's Server Hall (a maintenance trolley is the right home).
+- **Jack-in-the-box catapult**: press the lid to charge, release and the plug flies along an arc and bounces on the rug. Lives in Act 4's *Stretch* (rubber cables that sling plugs).
+- **Seesaw strip**: weights of seated plugs tilt it; reach follows the tilt.
+- **Tow cart**: a rolling device (a toy cart, a suitcase) pulled by its own cable; you move the *device* with the plug.
+- **Mouse on the cable**: a small agent crosses a gap on a taut cable and gnaws a frayed patch (a callback to tape).
+- **Two-cable devices** (power + data): a device with two plugs, both must be seated (an AND), the second into a different kind of strip.
+- **Curling on ice** (a throw physics mode: the plug slides on friction, bounces off walls): Act 4's *Float* is the zero-g cousin.
+- **Solar mirrors**: a device that wakes by light; drag a hand mirror to redirect the sunbeam (a laser-and-mirror blend).
+- **A kitten** who follows Biscuit from Level 22 and gets lost under the rug in Level 25.
+- **The sequencer strip as a toy room of its own**: plug and play with no goal at all (a candidate "Fidget" mode for the meta layer).
